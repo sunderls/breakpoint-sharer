@@ -1,0 +1,18 @@
+{
+	"name": "Breakpoint Sharer",
+	"description": "a breakpoint sharer",
+	"version": "0.1",
+	"permissions": [
+		"debugger"
+	],
+	"background": {
+		"scripts": [
+			"bg.js"
+		]
+	},
+	"browser_action": {
+		"default_icon": "icon.png",
+		"default_title": "Breakpoint Sharer"
+	},
+	"manifest_version": 2
+}
