@@ -6,6 +6,6 @@ module.exports = {
 	},
   	output: {
    		filename: '[name].js',
-    	path: './dist/js'
+    	path: './crx/js/dist'
   	}
 }

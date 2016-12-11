@@ -7,7 +7,7 @@
 	],
 	"background": {
 		"scripts": [
-			"js/bg.js"
+			"js/dist/bg.js"
 		]
 	},
 	"browser_action": {

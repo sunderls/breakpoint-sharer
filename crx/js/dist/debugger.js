@@ -61,7 +61,7 @@
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -91,12 +91,29 @@ const Command = (command, params) => {
 module.exports = Command;
 
 /***/ },
-/* 1 */,
-/* 2 */
+/* 1 */
+/***/ function(module, exports) {
+
+const $dom = document.getElementById('pane-main');
+const SourceViewer = {
+	render(source){
+		var myCodeMirror = CodeMirror($dom, {
+			value: source.content,
+			mode:  "javascript",
+			lineNumbers: true
+		});
+	}
+}
+
+module.exports = SourceViewer;
+
+/***/ },
+/* 2 */,
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 const Command = __webpack_require__(0);
-const SourceViewer = __webpack_require__(4);
+const SourceViewer = __webpack_require__(1);
 
 let log = (line) => {
 	let l = line;
@@ -163,20 +180,6 @@ document.getElementById('btn-pause').addEventListener('click', () => {
 	});
 }, false);
 
-
-/***/ },
-/* 3 */,
-/* 4 */
-/***/ function(module, exports) {
-
-const $dom = document.getElementById('file-source');
-const SourceViewer = {
-	render(source){
-		$dom.textContent = source.content;
-	}
-}
-
-module.exports = SourceViewer;
 
 /***/ }
 /******/ ]);

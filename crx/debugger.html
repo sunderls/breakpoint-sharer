@@ -3,7 +3,18 @@
 <head>
 	<meta charset="utf8">
  	<title>Debugger for Breakpoint Sharer</title>
-	<link rel="stylesheet" href="./css/photon.min.css">
+	<link rel="stylesheet" href="./css/lib/photon.min.css">
+	<link rel="stylesheet" href="./css/lib/codemirror.css">
+	<style>
+		.CodeMirror {
+			position: absolute;
+			top: 50px;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			height: auto;
+		}
+	</style>
 </head>
 <body>
 <div class="window">
@@ -32,12 +43,10 @@
 			</span>
 		</nav>
       </div>
-      <div class="pane">
-      	<div style="text-align: center;padding: 10px;">
+      <div class="pane" id="pane-main">
+      	<div style="text-align: center;padding: 10px;border-bottom: 1px solid #eee">
       		<button id="btn-pause">pause</button>
       		<button id="btn-resume">resume</button>
-      	</div>
-      	<div id="file-source">
       	</div>
       </div>
     </div>
@@ -47,6 +56,8 @@
     <input type="text" style="width:100%;outline:none;border: none;padding: 0 5px;font-family:monospace">
   </footer>
 </div>
-<script src="./js/debugger.js"></script>
+<script src="./js/lib/cm/codemirror.js"></script>
+<script src="./js/lib/cm/mode/javascript.js"></script>
+<script src="./js/dist/debugger.js"></script>
 </body>
 </html>

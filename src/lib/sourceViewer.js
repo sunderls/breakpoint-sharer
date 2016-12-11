@@ -1,7 +1,11 @@
-const $dom = document.getElementById('file-source');
+const $dom = document.getElementById('pane-main');
 const SourceViewer = {
 	render(source){
-		$dom.textContent = source.content;
+		var myCodeMirror = CodeMirror($dom, {
+			value: source.content,
+			mode:  "javascript",
+			lineNumbers: true
+		});
 	}
 }
 
