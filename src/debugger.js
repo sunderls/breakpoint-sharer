@@ -7,6 +7,8 @@ const $btnResume = $('#btn-resume');
 const $btnPause = $('#btn-pause');
 const $btnImport = $('#btn-import');
 const $btnExport = $('#btn-export');
+const $btnReload = $('#btn-reload');
+
 
 let pausedLineNumber = null;
 
@@ -85,6 +87,9 @@ $btnResume.on('click', resume);
 $btnPause.on('click', pause);
 $btnExport.on('click', exportBreakpoints);
 $btnImport.on('click', importBreakpoints);
+$btnReload.on('click', () => {
+	Command('Page.reload');
+});
 
 chrome.debugger.onDetach.addListener(() => {
 	window.close();

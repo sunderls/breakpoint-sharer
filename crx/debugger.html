@@ -2,13 +2,13 @@
 <html>
 <head>
 	<meta charset="utf8">
- 	<title>Debugger for Breakpoint Sharer</title>
+	<title>Debugger for Breakpoint Sharer</title>
 	<link rel="stylesheet" href="./css/lib/photon.min.css">
 	<link rel="stylesheet" href="./css/lib/codemirror.css">
 	<style>
 		.CodeMirror {
 			position: absolute;
-			top: 50px;
+			top: 35px;
 			right: 0;
 			bottom: 0;
 			left: 0;
@@ -34,11 +34,11 @@
 			right: 0;
 			bottom: 0;
 			width: 10px;
-		    border-left: 10px solid #2196f3;
-		    border-top: 10px solid transparent;
-		    border-bottom: 10px solid transparent;
-		    border-right: 0;
-		    box-sizing: border-box;
+			border-left: 10px solid #2196f3;
+			border-top: 10px solid transparent;
+			border-bottom: 10px solid transparent;
+			border-right: 0;
+			box-sizing: border-box;
 		}
 
 		[disabled] {
@@ -52,32 +52,55 @@
 </head>
 <body>
 <div class="window">
-  <div class="window-content">
-    <div class="pane-group">
-      	<div class="pane-one-fourth sidebar">
-      	<nav class="nav-group">
+	<div class="window-content">
+	<div class="pane-group">
+		<div class="pane-one-fourth sidebar">
+			<header class="toolbar toolbar-header">
+				<div class="toolbar-actions" style="text-align: center">
+					<div class="btn-group">
+						<button class="btn btn-default" id="btn-reload">
+							<span>reload webpage</span>
+						</button>
+					</div>
+				</div>
+			</header>
+		<nav class="nav-group">
 			<h5 class="nav-group-title">source</h5>
 			<div id="resources">
 			</div>
 		</nav>
-      </div>
-      <div class="pane" id="pane-main">
-      	<div style="text-align: center;padding: 10px;border-bottom: 1px solid #eee;height: 50px">
-      		breakpoints: 
-      		<button id="btn-pause">pause</button>
-      		<button id="btn-resume">resume</button> 
-      		<button id="btn-import">import</button>
-      		<button id="btn-export" disabled="">export</button>
-      		<button id="btn-export">clear all(0)</button>
-      	</div>
-      </div>
-    </div>
+	</div>
+	<div class="pane" id="pane-main">
+		<header class="toolbar toolbar-header">
+			<div class="toolbar-actions" style="text-align: center">
+				<strong>breakpoints </strong>
+				<div class="btn-group">
+					<button class="btn btn-default" id="btn-pause">
+						<span>pause</span>
+					</button>
+					<button class="btn btn-default" id="btn-resume">
+						<span>resume</span>
+					</button>
+					<button class="btn btn-default" id="btn-import">
+						<span>import</span>
+					</button>
+					<button class="btn btn-default" id="btn-export">
+						<span>export</span>
+					</button>
+					<button class="btn btn-default" id="btn-clear">
+						<span>clear all(0)</span>
+					</button>
+				</div>
+			</div>
+		</header>
+	</div>
+	</div>
   </div>
   <!--<footer class="toolbar toolbar-footer">
-    <h1 class="title">console</h1>
-    <div style="height:40px;overflow-y: scroll;background-color: #fff">
-    </div>
-    <input type="text" style="height: 30px;width:100%;outline:none;border: none;padding: 0 5px;font-family:monospace;border-top: 1px solid #eee" placeholder="enter here">
+	<h1 class="title">console</h1>
+	<div style="height:40px;overflow-y: scroll;background-color: #fff">
+	</div>
+	<input type="text" style="height: 30px;width:100%;outline:none;border: none;padding: 0 5px;font-family:monospace;border-top: 1px solid #eee" placeholder="enter here">
   </footer>-->
 </div>
 <script src="./js/lib/jquery.js"></script>
