@@ -12,8 +12,7 @@
 	},
 	"browser_action": {
 		"default_icon": "icon.png",
-		"default_title": "Breakpoint Sharer",
-		"default_popup": "popup.html"
+		"default_title": "Breakpoint Sharer"
 	},
 	"manifest_version": 2
 }

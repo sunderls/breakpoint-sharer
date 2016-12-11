@@ -1,9 +1,11 @@
 const allBreakpoints = [];
 const Command = require('./command');
+const $btnExport = $('#btn-export');
 
 const Breakpoint = {
 	collect(obj){
 		allBreakpoints.push(obj);
+		$btnExport.prop('disabled', false);
 	},
 
 	add(url, lineNumber){
@@ -33,7 +35,15 @@ const Breakpoint = {
 			if (index > -1){
 				allBreakpoints.splice(index, 1);
 			}
+
+			if (allBreakpoints.length < 1){
+				$btnExport.prop('disabled', true);
+			}
 		});
+	},
+
+	export(){
+		return allBreakpoints.map(item => item.breakpointId).join(',');
 	}
 }
 

@@ -5,6 +5,8 @@ const Breakpoint = require('./lib/breakpoint');
 
 const $btnResume = $('#btn-resume');
 const $btnPause = $('#btn-pause');
+const $btnImport = $('#btn-import');
+const $btnExport = $('#btn-export');
 
 let pausedLineNumber = null;
 
@@ -12,25 +14,33 @@ const onPaused = (lineNumber) => {
 	$btnResume.prop('disabled', false);
 	$btnPause.prop('disabled', true);
 	pausedLineNumber = lineNumber;
-}
+};
 
 const onResume = () => {
 	$btnResume.prop('disabled', true);
 	$btnPause.prop('disabled', false);
 	SourceViewer.toggleFocusClassAtLine(pausedLineNumber, /*isAdd*/false);
-}
+};
 
 const resume = () => {
 	Command('Debugger.resume', {}).then((result) => {
 		console.log(`Debugger.resume ${JSON.stringify(result)}`)
 	});
-}
+};
 
 const pause = () => {
 	Command('Debugger.pause', {}).then((result) => {
 		console.log(`Debugger.pause ${JSON.stringify(result)}`);
 	});
-}
+};
+
+const exportBreakpoints = () => {
+	alert(Breakpoint.export());
+};
+
+const importBreakpoints = () => {
+
+};
 
 // get vue.js content
 Command('Page.enable', {}).then(() => {
@@ -72,5 +82,10 @@ Command('Debugger.enable', {}).then(() => {
 // }, false);
 
 $btnResume.on('click', resume);
-
 $btnPause.on('click', pause);
+$btnExport.on('click', exportBreakpoints);
+$btnImport.on('click', importBreakpoints);
+
+chrome.debugger.onDetach.addListener(() => {
+	window.close();
+});

@@ -18,12 +18,8 @@ const SourceViewer = {
 		if (isAdd){
 			Breakpoint.add(this.fileUrl, lineNumber)
 				.then((result) => {
-				if (chrome.runtime.lastError){
-					log(chrome.runtime.lastError);
-				} else {
 					this.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
-				}
-			});
+				});
 		} else {
 
 			Breakpoint.remove(this.fileUrl, lineNumber)

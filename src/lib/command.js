@@ -13,7 +13,11 @@ const Command = (command, params) => {
 	return new Promise((resolve, reject) => {
 		chrome.debugger.sendCommand(
 			debuggee, command, params, (result) => {
-				resolve(result);
+				if (chrome.runtime.lastError){
+					reject(chrome.runtime.lastError);
+				} else {
+					resolve(result);
+				}
 			});
 	});
 }
