@@ -92,23 +92,34 @@ module.exports = Command;
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 const $dom = document.getElementById('pane-main');
-
+const Command = __webpack_require__(0);
 const codeMirror = CodeMirror($dom, {
 	value: '// select file from left pane',
 	mode:  "javascript",
-	lineNumbers: true
+	lineNumbers: true,
+	readOnly: true
 });
 
-
 const SourceViewer = {
-	render(source){
+	render(fileUrl, source){
+		this.fileUrl = fileUrl;
 		codeMirror.setValue(source.content);
 	},
 
 	toggleBreakPointAtLine(lineNumber){
+		Command('Debugger.setBreakpointByUrl', {
+			lineNumber: lineNumber,
+			url: this.fileUrl
+		}).then((result) => {
+			if (chrome.runtime.lastError){
+				log(chrome.runtime.lastError);
+			} else {
+				log('set breakpoints:' + JSON.stringify(result));
+			}
+		});
 
 	}
 }
@@ -117,7 +128,7 @@ $(document).on('click', '.CodeMirror-linenumber', (e) => {
 	let $target = $(e.target);
 	$target.toggleClass('breakpoint');
 
-	SourceViewer.toggleBreakPointAtLine($target.text());
+	SourceViewer.toggleBreakPointAtLine($target.text() * 1);
 })
 module.exports = SourceViewer;
 
@@ -151,17 +162,7 @@ Command('Page.enable', {}).then(() => {
 });
 
 Command('Debugger.enable', {}).then(() => {
-	Command('Debugger.setBreakpointByUrl', {
-			lineNumber: 3318,
-			url: 'https://jp.vuejs.org/js/vue.js'
-		}).then((result) => {
-			if (chrome.runtime.lastError){
-				log(chrome.runtime.lastError);
-			} else {
-				log('set breakpoints:' + JSON.stringify(result));
-			}
-		});
-
+	
 	chrome.debugger.onEvent.addListener((source, method, obj) => {
 		if (method == 'Debugger.paused'){
 			log(`Event: ${method}, ${JSON.stringify(obj)}`);
@@ -224,7 +225,7 @@ $(document).on('click', '.resource-file', (e) => {
 	Command('Page.getResourceContent', {
 		frameId: ResourceViewer.resources.frame.id,
 		url
-	}).then(SourceViewer.render.bind(SourceViewer));
+	}).then(SourceViewer.render.bind(SourceViewer, url));
 	$target.siblings().removeClass('active');
 	$target.addClass('active');
 });

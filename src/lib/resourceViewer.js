@@ -25,7 +25,7 @@ $(document).on('click', '.resource-file', (e) => {
 	Command('Page.getResourceContent', {
 		frameId: ResourceViewer.resources.frame.id,
 		url
-	}).then(SourceViewer.render.bind(SourceViewer));
+	}).then(SourceViewer.render.bind(SourceViewer, url));
 	$target.siblings().removeClass('active');
 	$target.addClass('active');
 });

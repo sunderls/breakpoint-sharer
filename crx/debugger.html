@@ -54,7 +54,7 @@
 		</nav>
       </div>
       <div class="pane" id="pane-main">
-      	<div style="text-align: center;padding: 10px;border-bottom: 1px solid #eee">
+      	<div style="text-align: center;padding: 10px;border-bottom: 1px solid #eee;height: 50px">
       		<button id="btn-pause">pause</button>
       		<button id="btn-resume">resume</button>
       	</div>
@@ -63,12 +63,18 @@
   </div>
   <footer class="toolbar toolbar-footer">
     <h1 class="title">console</h1>
-    <input type="text" style="width:100%;outline:none;border: none;padding: 0 5px;font-family:monospace">
+    <div style="height:40px;overflow-y: scroll;background-color: #fff">
+    </div>
+    <input type="text" style="height: 30px;width:100%;outline:none;border: none;padding: 0 5px;font-family:monospace;border-top: 1px solid #eee" placeholder="enter here">
   </footer>
 </div>
 <script src="./js/lib/jquery.js"></script>
 <script src="./js/lib/cm/codemirror.js"></script>
 <script src="./js/lib/cm/mode/javascript.js"></script>
+<script src="./js/lib/cm/addon/dialog/dialog.js"></script>
+<script src="./js/lib/cm/addon/search/searchcursor.js"></script>
+<script src="./js/lib/cm/addon/search/search.js"></script>
+<script src="./js/lib/cm/addon/search/jump-to-line.js"></script>
 <script src="./js/dist/debugger.js"></script>
 </body>
 </html>

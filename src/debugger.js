@@ -23,17 +23,7 @@ Command('Page.enable', {}).then(() => {
 });
 
 Command('Debugger.enable', {}).then(() => {
-	Command('Debugger.setBreakpointByUrl', {
-			lineNumber: 3318,
-			url: 'https://jp.vuejs.org/js/vue.js'
-		}).then((result) => {
-			if (chrome.runtime.lastError){
-				log(chrome.runtime.lastError);
-			} else {
-				log('set breakpoints:' + JSON.stringify(result));
-			}
-		});
-
+	
 	chrome.debugger.onEvent.addListener((source, method, obj) => {
 		if (method == 'Debugger.paused'){
 			log(`Event: ${method}, ${JSON.stringify(obj)}`);
