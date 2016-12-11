@@ -18,6 +18,9 @@ const SourceViewer = {
 }
 
 $(document).on('click', '.CodeMirror-linenumber', (e) => {
-	SourceViewer.toggleBreakPointAtLine($(e.target).text());
+	let $target = $(e.target);
+	$target.toggleClass('breakpoint');
+
+	SourceViewer.toggleBreakPointAtLine($target.text());
 })
 module.exports = SourceViewer;

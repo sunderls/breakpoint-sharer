@@ -14,6 +14,32 @@
 			left: 0;
 			height: auto;
 		}
+
+		.breakpoint::before {
+			content: '';
+			display: block;
+			position: absolute;
+			left: 0;
+			top: 0;
+			right: 10px;
+			bottom: 0;
+			background-color: #2196f3;
+		}
+
+		.breakpoint::after {
+			content: '';
+			display: block;
+			position: absolute;;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			width: 10px;
+		    border-left: 10px solid #2196f3;
+		    border-top: 10px solid transparent;
+		    border-bottom: 10px solid transparent;
+		    border-right: 0;
+		    box-sizing: border-box;
+		}
 	</style>
 </head>
 <body>
