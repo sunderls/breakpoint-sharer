@@ -183,14 +183,18 @@ const Breakpoint = __webpack_require__(6);
 const $btnResume = $('#btn-resume');
 const $btnPause = $('#btn-pause');
 
-const onPaused = () => {
+let pausedLineNumber = null;
+
+const onPaused = (lineNumber) => {
 	$btnResume.prop('disabled', false);
 	$btnPause.prop('disabled', true);
+	pausedLineNumber = lineNumber;
 }
 
 const onResume = () => {
 	$btnResume.prop('disabled', true);
 	$btnPause.prop('disabled', false);
+	SourceViewer.toggleFocusClassAtLine(pausedLineNumber, /*isAdd*/false);
 }
 
 const resume = () => {
@@ -225,7 +229,7 @@ Command('Debugger.enable', {}).then(() => {
 				SourceViewer.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
 				SourceViewer.toggleFocusClassAtLine(lineNumber, /*isAdd*/true);
 				SourceViewer.showLine(lineNumber);
-				onPaused();
+				onPaused(lineNumber);
 			}
 		} else if (method === 'Debugger.breakpointResolved'){
 			Breakpoint.collect(obj);
