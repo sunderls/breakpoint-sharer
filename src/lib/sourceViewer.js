@@ -1,15 +1,19 @@
 const $dom = document.getElementById('pane-main');
+
+const codeMirror = CodeMirror($dom, {
+	value: '// select file from left pane',
+	mode:  "javascript",
+	lineNumbers: true
+});
+
+
 const SourceViewer = {
 	render(source){
-		var myCodeMirror = CodeMirror($dom, {
-			value: source.content,
-			mode:  "javascript",
-			lineNumbers: true
-		});
+		codeMirror.setValue(source.content);
 	},
 
 	toggleBreakPointAtLine(lineNumber){
-		
+
 	}
 }
 

@@ -95,17 +95,21 @@ module.exports = Command;
 /***/ function(module, exports) {
 
 const $dom = document.getElementById('pane-main');
+
+const codeMirror = CodeMirror($dom, {
+	value: '// select file from left pane',
+	mode:  "javascript",
+	lineNumbers: true
+});
+
+
 const SourceViewer = {
 	render(source){
-		var myCodeMirror = CodeMirror($dom, {
-			value: source.content,
-			mode:  "javascript",
-			lineNumbers: true
-		});
+		codeMirror.setValue(source.content);
 	},
 
 	toggleBreakPointAtLine(lineNumber){
-		
+
 	}
 }
 
@@ -140,12 +144,6 @@ Command('Page.enable', {}).then(() => {
 		.then((result) => {
 			let frame = result.frameTree.frame;
 			ResourceViewer.render(result.frameTree);
-			
-			let url = 'https://jp.vuejs.org/js/vue.js';
-			Command('Page.getResourceContent', {
-				frameId: frame.id,
-				url
-			}).then(SourceViewer.render.bind(SourceViewer));
 		});
 });
 
@@ -194,24 +192,39 @@ document.getElementById('btn-pause').addEventListener('click', () => {
 /***/ },
 /* 4 */,
 /* 5 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
+const Command = __webpack_require__(0);
+const SourceViewer = __webpack_require__(1);
 const $dom = $('#resources');
 
 const ResourceViewer = {
 	selectedUrl: null,
+	resources: null,
 	render(resources){
 		let html = resources.resources.filter(item => item.type === 'Script')
 			.map(item => {
 				let fileName = item.url.split('/').slice(-1)[0];
-				return `<span class="nav-group-item ${item.url === this.selectedUrl ? 'active': ''}" title="${item.url}">
+				return `<span class="nav-group-item ${item.url === this.selectedUrl ? 'active': ''} resource-file" title="${item.url}">
 				    ${fileName}
 				  </span>`;
 			});
 		$dom.html(html);
+
+		this.resources = resources;
 	}
 };
 
+$(document).on('click', '.resource-file', (e) => {
+	let $target = $(e.target);
+	let url = $target.attr('title');
+	Command('Page.getResourceContent', {
+		frameId: ResourceViewer.resources.frame.id,
+		url
+	}).then(SourceViewer.render.bind(SourceViewer));
+	$target.siblings().removeClass('active');
+	$target.addClass('active');
+});
 
 module.exports = ResourceViewer;
 

@@ -19,12 +19,6 @@ Command('Page.enable', {}).then(() => {
 		.then((result) => {
 			let frame = result.frameTree.frame;
 			ResourceViewer.render(result.frameTree);
-			
-			let url = 'https://jp.vuejs.org/js/vue.js';
-			Command('Page.getResourceContent', {
-				frameId: frame.id,
-				url
-			}).then(SourceViewer.render.bind(SourceViewer));
 		});
 });
 
