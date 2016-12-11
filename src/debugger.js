@@ -1,5 +1,6 @@
 const Command = require('./lib/command');
 const SourceViewer = require('./lib/sourceViewer');
+const ResourceViewer = require('./lib/resourceViewer');
 
 let log = (line) => {
 	let l = line;
@@ -17,6 +18,8 @@ Command('Page.enable', {}).then(() => {
 	Command('Page.getResourceTree', {})
 		.then((result) => {
 			let frame = result.frameTree.frame;
+			ResourceViewer.render(result.frameTree);
+			
 			let url = 'https://jp.vuejs.org/js/vue.js';
 			Command('Page.getResourceContent', {
 				frameId: frame.id,

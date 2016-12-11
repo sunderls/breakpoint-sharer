@@ -102,9 +102,16 @@ const SourceViewer = {
 			mode:  "javascript",
 			lineNumbers: true
 		});
+	},
+
+	toggleBreakPointAtLine(lineNumber){
+		
 	}
 }
 
+$(document).on('click', '.CodeMirror-linenumber', (e) => {
+	SourceViewer.toggleBreakPointAtLine($(e.target).text());
+})
 module.exports = SourceViewer;
 
 /***/ },
@@ -114,6 +121,7 @@ module.exports = SourceViewer;
 
 const Command = __webpack_require__(0);
 const SourceViewer = __webpack_require__(1);
+const ResourceViewer = __webpack_require__(5);
 
 let log = (line) => {
 	let l = line;
@@ -131,6 +139,8 @@ Command('Page.enable', {}).then(() => {
 	Command('Page.getResourceTree', {})
 		.then((result) => {
 			let frame = result.frameTree.frame;
+			ResourceViewer.render(result.frameTree);
+			
 			let url = 'https://jp.vuejs.org/js/vue.js';
 			Command('Page.getResourceContent', {
 				frameId: frame.id,
@@ -180,6 +190,30 @@ document.getElementById('btn-pause').addEventListener('click', () => {
 	});
 }, false);
 
+
+/***/ },
+/* 4 */,
+/* 5 */
+/***/ function(module, exports) {
+
+const $dom = $('#resources');
+
+const ResourceViewer = {
+	selectedUrl: null,
+	render(resources){
+		let html = resources.resources.filter(item => item.type === 'Script')
+			.map(item => {
+				let fileName = item.url.split('/').slice(-1)[0];
+				return `<span class="nav-group-item ${item.url === this.selectedUrl ? 'active': ''}" title="${item.url}">
+				    ${fileName}
+				  </span>`;
+			});
+		$dom.html(html);
+	}
+};
+
+
+module.exports = ResourceViewer;
 
 /***/ }
 /******/ ]);
