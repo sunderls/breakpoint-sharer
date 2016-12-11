@@ -38,7 +38,6 @@ Command('Page.enable', {}).then(() => {
 });
 
 Command('Debugger.enable', {}).then(() => {
-	
 	chrome.debugger.onEvent.addListener((source, method, obj) => {
 		console.log(`Event:${method}, ${JSON.stringify(obj)}`);
 		if (method === 'Debugger.paused'){
@@ -47,6 +46,7 @@ Command('Debugger.enable', {}).then(() => {
 			if (obj.hitBreakpoints){
 				let lineNumber = obj.hitBreakpoints[0].split(':')[2] * 1;
 				SourceViewer.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
+				SourceViewer.toggleFocusClassAtLine(lineNumber, /*isAdd*/true);
 				SourceViewer.showLine(lineNumber);
 				onPaused();
 			}

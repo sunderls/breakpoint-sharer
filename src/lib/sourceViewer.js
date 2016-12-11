@@ -1,5 +1,6 @@
 const $dom = document.getElementById('pane-main');
 const Command = require('./command');
+const Breakpoint = require('./breakpoint');
 const codeMirror = CodeMirror($dom, {
 	value: '// select file from left pane',
 	mode:  "javascript",
@@ -15,10 +16,8 @@ const SourceViewer = {
 
 	toggleBreakpointAtLine(lineNumber, isAdd){
 		if (isAdd){
-			Command('Debugger.setBreakpointByUrl', {
-				lineNumber: lineNumber,
-				url: this.fileUrl
-			}).then((result) => {
+			Breakpoint.add(this.fileUrl, lineNumber)
+				.then((result) => {
 				if (chrome.runtime.lastError){
 					log(chrome.runtime.lastError);
 				} else {
@@ -26,19 +25,11 @@ const SourceViewer = {
 				}
 			});
 		} else {
-			console.log('remove');
-			this.toggleBreakpointClassAtLine(lineNumber, false);
 
-			Command('Debugger.setBreakpointByUrl', {
-				lineNumber: lineNumber,
-				url: this.fileUrl
-			}).then((result) => {
-				if (chrome.runtime.lastError){
-					log(chrome.runtime.lastError);
-				} else {
-					this.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/false);
-				}
-			});
+			Breakpoint.remove(this.fileUrl, lineNumber)
+				.then((result) => {
+					this.toggleBreakpointClassAtLine(lineNumber, false);
+				});
 		}
 	},
 
@@ -47,6 +38,14 @@ const SourceViewer = {
 			codeMirror.addLineClass(lineNumber, 'gutter', 'breakpoint');
 		} else {
 			codeMirror.removeLineClass(lineNumber, 'gutter', 'breakpoint');
+		}
+	},
+
+	toggleFocusClassAtLine(lineNumber, isAdd){
+		if (isAdd){
+			codeMirror.addLineClass(lineNumber, 'text', 'focused-line');
+		} else {
+			codeMirror.removeLineClass(lineNumber, 'text', 'focused-line');
 		}
 	},
 

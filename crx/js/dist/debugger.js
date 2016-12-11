@@ -96,6 +96,7 @@ module.exports = Command;
 
 const $dom = document.getElementById('pane-main');
 const Command = __webpack_require__(0);
+const Breakpoint = __webpack_require__(6);
 const codeMirror = CodeMirror($dom, {
 	value: '// select file from left pane',
 	mode:  "javascript",
@@ -111,10 +112,8 @@ const SourceViewer = {
 
 	toggleBreakpointAtLine(lineNumber, isAdd){
 		if (isAdd){
-			Command('Debugger.setBreakpointByUrl', {
-				lineNumber: lineNumber,
-				url: this.fileUrl
-			}).then((result) => {
+			Breakpoint.add(this.fileUrl, lineNumber)
+				.then((result) => {
 				if (chrome.runtime.lastError){
 					log(chrome.runtime.lastError);
 				} else {
@@ -122,19 +121,11 @@ const SourceViewer = {
 				}
 			});
 		} else {
-			console.log('remove');
-			this.toggleBreakpointClassAtLine(lineNumber, false);
 
-			Command('Debugger.setBreakpointByUrl', {
-				lineNumber: lineNumber,
-				url: this.fileUrl
-			}).then((result) => {
-				if (chrome.runtime.lastError){
-					log(chrome.runtime.lastError);
-				} else {
-					this.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/false);
-				}
-			});
+			Breakpoint.remove(this.fileUrl, lineNumber)
+				.then((result) => {
+					this.toggleBreakpointClassAtLine(lineNumber, false);
+				});
 		}
 	},
 
@@ -143,6 +134,14 @@ const SourceViewer = {
 			codeMirror.addLineClass(lineNumber, 'gutter', 'breakpoint');
 		} else {
 			codeMirror.removeLineClass(lineNumber, 'gutter', 'breakpoint');
+		}
+	},
+
+	toggleFocusClassAtLine(lineNumber, isAdd){
+		if (isAdd){
+			codeMirror.addLineClass(lineNumber, 'text', 'focused-line');
+		} else {
+			codeMirror.removeLineClass(lineNumber, 'text', 'focused-line');
 		}
 	},
 
@@ -216,7 +215,6 @@ Command('Page.enable', {}).then(() => {
 });
 
 Command('Debugger.enable', {}).then(() => {
-	
 	chrome.debugger.onEvent.addListener((source, method, obj) => {
 		console.log(`Event:${method}, ${JSON.stringify(obj)}`);
 		if (method === 'Debugger.paused'){
@@ -225,6 +223,7 @@ Command('Debugger.enable', {}).then(() => {
 			if (obj.hitBreakpoints){
 				let lineNumber = obj.hitBreakpoints[0].split(':')[2] * 1;
 				SourceViewer.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
+				SourceViewer.toggleFocusClassAtLine(lineNumber, /*isAdd*/true);
 				SourceViewer.showLine(lineNumber);
 				onPaused();
 			}
@@ -291,13 +290,44 @@ module.exports = ResourceViewer;
 
 /***/ },
 /* 6 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 const allBreakpoints = [];
+const Command = __webpack_require__(0);
 
 const Breakpoint = {
 	collect(obj){
 		allBreakpoints.push(obj);
+	},
+
+	add(url, lineNumber){
+		return Command('Debugger.setBreakpointByUrl', {
+			lineNumber,
+			url
+		}).then((result) => {
+			this.collect(result);
+		});
+	},
+
+	remove(url, lineNumber){
+		let breakpointId =  `${url}:${lineNumber}:0`;
+		return Command('Debugger.removeBreakpoint', {
+			breakpointId
+		}).then((result) => {
+			let index = -1;
+			let i = 0;
+			while(i< allBreakpoints.length){
+				if (allBreakpoints[i].breakpointId === breakpointId){
+					index = i;
+					break;
+				}
+				i++;
+			};
+
+			if (index > -1){
+				allBreakpoints.splice(index, 1);
+			}
+		});
 	}
 }
 
