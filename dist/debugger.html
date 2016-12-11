@@ -1,14 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Debugger for Breakpoint Sharer</title>
+	<meta charset="utf8">
+ 	<title>Debugger for Breakpoint Sharer</title>
+	<link rel="stylesheet" href="./css/photon.min.css">
 </head>
 <body>
-<h1>Debugger here</h1>
-<textarea id="textarea-inject"></textarea>
-<button id="btn-run">execute</button>
-<button id="btn-pause">pause </button>
-<button id="btn-resume">resume</button>
-<script src="./debugger.js"></script>
+<div class="window">
+  <div class="window-content">
+    <div class="pane-group">
+      	<div class="pane-one-fourth sidebar">
+      	<nav class="nav-group">
+			<h5 class="nav-group-title">source</h5>
+			<a class="nav-group-item">
+				connors
+			</a>
+			<span class="nav-group-item">
+				Downloads
+			</span>
+			<span class="nav-group-item">
+				Documents
+			</span>
+			<span class="nav-group-item">
+				AirPlay
+			</span>
+			<span class="nav-group-item">
+				Applications
+			</span>
+			<span class="nav-group-item">
+				Desktop
+			</span>
+		</nav>
+      </div>
+      <div class="pane">
+      	<div style="text-align: center;padding: 10px;">
+      		<button id="btn-pause">pause</button>
+      		<button id="btn-resume">resume</button>
+      	</div>
+      	<div id="file-source">
+      	</div>
+      </div>
+    </div>
+  </div>
+  <footer class="toolbar toolbar-footer">
+    <h1 class="title">console</h1>
+    <input type="text" style="width:100%;outline:none;border: none;padding: 0 5px;font-family:monospace">
+  </footer>
+</div>
+<script src="./js/debugger.js"></script>
 </body>
 </html>

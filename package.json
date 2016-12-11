@@ -1,0 +1,23 @@
+{
+  "name": "breakpoint-sharer",
+  "version": "1.0.0",
+  "description": "a breakpoint sharer",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "dev": "webpack --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sunderls/breakpoint-sharer.git"
+  },
+  "author": "@sunderls",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sunderls/breakpoint-sharer/issues"
+  },
+  "homepage": "https://github.com/sunderls/breakpoint-sharer#readme",
+  "devDependencies": {
+    "webpack": "^2.1.0-beta.27"
+  }
+}

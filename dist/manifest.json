@@ -3,11 +3,11 @@
 	"description": "a breakpoint sharer",
 	"version": "0.1",
 	"permissions": [
-		"debugger","tabs"
+		"debugger", "tabs"
 	],
 	"background": {
 		"scripts": [
-			"bg.js"
+			"js/bg.js"
 		]
 	},
 	"browser_action": {
