@@ -109,27 +109,66 @@ const SourceViewer = {
 		codeMirror.setValue(source.content);
 	},
 
-	toggleBreakPointAtLine(lineNumber){
-		Command('Debugger.setBreakpointByUrl', {
-			lineNumber: lineNumber,
-			url: this.fileUrl
-		}).then((result) => {
-			if (chrome.runtime.lastError){
-				log(chrome.runtime.lastError);
-			} else {
-				log('set breakpoints:' + JSON.stringify(result));
-			}
-		});
+	toggleBreakpointAtLine(lineNumber, isAdd){
+		if (isAdd){
+			Command('Debugger.setBreakpointByUrl', {
+				lineNumber: lineNumber,
+				url: this.fileUrl
+			}).then((result) => {
+				if (chrome.runtime.lastError){
+					log(chrome.runtime.lastError);
+				} else {
+					this.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
+				}
+			});
+		} else {
+			console.log('remove');
+			this.toggleBreakpointClassAtLine(lineNumber, false);
 
+			Command('Debugger.setBreakpointByUrl', {
+				lineNumber: lineNumber,
+				url: this.fileUrl
+			}).then((result) => {
+				if (chrome.runtime.lastError){
+					log(chrome.runtime.lastError);
+				} else {
+					this.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/false);
+				}
+			});
+		}
+	},
+
+	toggleBreakpointClassAtLine(lineNumber, isAdd){
+		if (isAdd){
+			codeMirror.addLineClass(lineNumber, 'gutter', 'breakpoint');
+		} else {
+			codeMirror.removeLineClass(lineNumber, 'gutter', 'breakpoint');
+		}
+	},
+
+	/**
+	 * show line
+	 */
+	showLine(lineNumber){
+		let t = codeMirror.charCoords({line: lineNumber, ch: 0}, "local").top; 
+		let middleHeight = codeMirror.getScrollerElement().offsetHeight / 2; 
+	    codeMirror.scrollTo(null, t - middleHeight - 5); 
 	}
+
 }
 
-$(document).on('click', '.CodeMirror-linenumber', (e) => {
-	let $target = $(e.target);
-	$target.toggleClass('breakpoint');
 
-	SourceViewer.toggleBreakPointAtLine($target.text() * 1);
-})
+codeMirror.on('gutterClick', (cm, line, gutter, e) => {
+	console.log(cm, line, gutter, e);
+	let info = cm.getLineHandle(line);
+	if (info.gutterClass === 'breakpoint'){
+		SourceViewer.toggleBreakpointAtLine(line, false);
+	} else {
+		SourceViewer.toggleBreakpointAtLine(line, true);
+	}
+});
+
+window.codeMirror = codeMirror;
 module.exports = SourceViewer;
 
 /***/ },
@@ -140,17 +179,32 @@ module.exports = SourceViewer;
 const Command = __webpack_require__(0);
 const SourceViewer = __webpack_require__(1);
 const ResourceViewer = __webpack_require__(5);
+const Breakpoint = __webpack_require__(6);
 
-let log = (line) => {
-	let l = line;
-	if (typeof line === 'object'){
-		l = JSON.stringify(line);
-	}
-	let p = document.createElement('p');
-	p.textContent = l;
-	document.body.appendChild(p);
+const $btnResume = $('#btn-resume');
+const $btnPause = $('#btn-pause');
+
+const onPaused = () => {
+	$btnResume.prop('disabled', false);
+	$btnPause.prop('disabled', true);
 }
 
+const onResume = () => {
+	$btnResume.prop('disabled', true);
+	$btnPause.prop('disabled', false);
+}
+
+const resume = () => {
+	Command('Debugger.resume', {}).then((result) => {
+		console.log(`Debugger.resume ${JSON.stringify(result)}`)
+	});
+}
+
+const pause = () => {
+	Command('Debugger.pause', {}).then((result) => {
+		console.log(`Debugger.pause ${JSON.stringify(result)}`);
+	});
+}
 
 // get vue.js content
 Command('Page.enable', {}).then(() => {
@@ -164,8 +218,20 @@ Command('Page.enable', {}).then(() => {
 Command('Debugger.enable', {}).then(() => {
 	
 	chrome.debugger.onEvent.addListener((source, method, obj) => {
-		if (method == 'Debugger.paused'){
-			log(`Event: ${method}, ${JSON.stringify(obj)}`);
+		console.log(`Event:${method}, ${JSON.stringify(obj)}`);
+		if (method === 'Debugger.paused'){
+			// when script is stopped by breakpoints
+			// scroll to it
+			if (obj.hitBreakpoints){
+				let lineNumber = obj.hitBreakpoints[0].split(':')[2] * 1;
+				SourceViewer.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
+				SourceViewer.showLine(lineNumber);
+				onPaused();
+			}
+		} else if (method === 'Debugger.breakpointResolved'){
+			Breakpoint.collect(obj);
+		} else if (method === 'Debugger.resumed'){
+			onResume();
 		}
 	});
 });
@@ -179,18 +245,9 @@ Command('Debugger.enable', {}).then(() => {
 // 	});
 // }, false);
 
+$btnResume.on('click', resume);
 
-document.getElementById('btn-resume').addEventListener('click', () => {
-	Command('Debugger.resume', {}).then((result) => {
-		log(result);
-	});
-}, false);
-
-document.getElementById('btn-pause').addEventListener('click', () => {
-	Command('Debugger.pause', {}).then((result) => {
-		log(result);
-	});
-}, false);
+$btnPause.on('click', pause);
 
 
 /***/ },
@@ -231,6 +288,21 @@ $(document).on('click', '.resource-file', (e) => {
 });
 
 module.exports = ResourceViewer;
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+const allBreakpoints = [];
+
+const Breakpoint = {
+	collect(obj){
+		allBreakpoints.push(obj);
+	}
+}
+
+window.allBreakpoints = allBreakpoints;
+module.exports = Breakpoint;
 
 /***/ }
 /******/ ]);
