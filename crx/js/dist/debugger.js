@@ -69,27 +69,26 @@
 /***/ function(module, exports) {
 
 let params = location.search.slice(1).split('&').reduce((pre, curr) => {
-	let pair = curr.split('=');
-	pre[pair[0]] = pair[1];
-	return pre;
+    let pair = curr.split('=');
+    pre[pair[0]] = pair[1];
+    return pre;
 }, {});
 
 let debuggee = {
-	tabId: params.tabId * 1
+    tabId: params.tabId * 1
 };
 
-
 const Command = (command, params) => {
-	return new Promise((resolve, reject) => {
-		chrome.debugger.sendCommand(
-			debuggee, command, params, (result) => {
-				if (chrome.runtime.lastError){
-					reject(chrome.runtime.lastError);
-				} else {
-					resolve(result);
-				}
-			});
-	});
+    return new Promise((resolve, reject) => {
+        chrome.debugger.sendCommand(
+            debuggee, command, params, (result) => {
+                if (chrome.runtime.lastError){
+                    reject(chrome.runtime.lastError);
+                } else {
+                    resolve(result);
+                }
+            });
+    });
 }
 
 module.exports = Command;
@@ -102,69 +101,78 @@ const $dom = document.getElementById('pane-main');
 const Command = __webpack_require__(0);
 const Breakpoint = __webpack_require__(6);
 const codeMirror = CodeMirror($dom, {
-	value: '// select file from left pane',
-	mode:  "javascript",
-	lineNumbers: true,
-	readOnly: true
+    value: '// select file from left pane',
+    mode:  "javascript",
+    lineNumbers: true,
+    readOnly: true
 });
 
 const SourceViewer = {
-	render(fileUrl, source){
-		this.fileUrl = fileUrl;
-		codeMirror.setValue(source.content);
-	},
+    render(fileUrl, source){
+        this.fileUrl = fileUrl;
+        codeMirror.setValue(source.content);
+        this.initBreakpoints();
+    },
 
-	toggleBreakpointAtLine(lineNumber, isAdd){
-		if (isAdd){
-			Breakpoint.add(this.fileUrl, lineNumber)
-				.then((result) => {
-					this.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
-				});
-		} else {
+    initBreakpoints(){
+        let breakpoints = Breakpoint.getAll().filter(item => item.breakpointId.indexOf(this.fileUrl) === 0);
+        breakpoints.forEach((item) => {
+            let lineNumber = item.breakpointId.split(':')[2] * 1;
+            this.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
+        });
+    },
 
-			Breakpoint.remove(this.fileUrl, lineNumber)
-				.then((result) => {
-					this.toggleBreakpointClassAtLine(lineNumber, false);
-				});
-		}
-	},
+    toggleBreakpointAtLine(lineNumber, isAdd){
+        if (isAdd){
+            Breakpoint.add(this.fileUrl, lineNumber)
+                .then((result) => {
+                    this.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
+                });
+        } else {
 
-	toggleBreakpointClassAtLine(lineNumber, isAdd){
-		if (isAdd){
-			codeMirror.addLineClass(lineNumber, 'gutter', 'breakpoint');
-		} else {
-			codeMirror.removeLineClass(lineNumber, 'gutter', 'breakpoint');
-		}
-	},
+            Breakpoint.remove(this.fileUrl, lineNumber)
+                .then((result) => {
+                    this.toggleBreakpointClassAtLine(lineNumber, false);
+                });
+        }
+    },
 
-	toggleFocusClassAtLine(lineNumber, isAdd){
-		if (isAdd){
-			codeMirror.addLineClass(lineNumber, 'text', 'focused-line');
-		} else {
-			codeMirror.removeLineClass(lineNumber, 'text', 'focused-line');
-		}
-	},
+    toggleBreakpointClassAtLine(lineNumber, isAdd){
+        if (isAdd){
+            codeMirror.addLineClass(lineNumber, 'gutter', 'breakpoint');
+        } else {
+            codeMirror.removeLineClass(lineNumber, 'gutter', 'breakpoint');
+        }
+    },
 
-	/**
-	 * show line
-	 */
-	showLine(lineNumber){
-		let t = codeMirror.charCoords({line: lineNumber, ch: 0}, "local").top; 
-		let middleHeight = codeMirror.getScrollerElement().offsetHeight / 2; 
-	    codeMirror.scrollTo(null, t - middleHeight - 5); 
-	}
+    toggleFocusClassAtLine(lineNumber, isAdd){
+        if (isAdd){
+            codeMirror.addLineClass(lineNumber, 'text', 'focused-line');
+        } else {
+            codeMirror.removeLineClass(lineNumber, 'text', 'focused-line');
+        }
+    },
+
+    /**
+     * show line
+     */
+    showLine(lineNumber){
+        let t = codeMirror.charCoords({line: lineNumber, ch: 0}, "local").top; 
+        let middleHeight = codeMirror.getScrollerElement().offsetHeight / 2; 
+        codeMirror.scrollTo(null, t - middleHeight - 5); 
+    }
 
 }
 
 
 codeMirror.on('gutterClick', (cm, line, gutter, e) => {
-	console.log(cm, line, gutter, e);
-	let info = cm.getLineHandle(line);
-	if (info.gutterClass === 'breakpoint'){
-		SourceViewer.toggleBreakpointAtLine(line, false);
-	} else {
-		SourceViewer.toggleBreakpointAtLine(line, true);
-	}
+    console.log(cm, line, gutter, e);
+    let info = cm.getLineHandle(line);
+    if (info.gutterClass === 'breakpoint'){
+        SourceViewer.toggleBreakpointAtLine(line, false);
+    } else {
+        SourceViewer.toggleBreakpointAtLine(line, true);
+    }
 });
 
 window.codeMirror = codeMirror;
@@ -190,31 +198,31 @@ const $btnReload = $('#btn-reload');
 let pausedLineNumber = null;
 
 const onPaused = (lineNumber) => {
-	$btnResume.prop('disabled', false);
-	$btnPause.prop('disabled', true);
-	pausedLineNumber = lineNumber;
+    $btnResume.prop('disabled', false);
+    $btnPause.prop('disabled', true);
+    pausedLineNumber = lineNumber;
 };
 
 const onResume = () => {
-	$btnResume.prop('disabled', true);
-	$btnPause.prop('disabled', false);
-	SourceViewer.toggleFocusClassAtLine(pausedLineNumber, /*isAdd*/false);
+    $btnResume.prop('disabled', true);
+    $btnPause.prop('disabled', false);
+    SourceViewer.toggleFocusClassAtLine(pausedLineNumber, /*isAdd*/false);
 };
 
 const resume = () => {
-	Command('Debugger.resume', {}).then((result) => {
-		console.log(`Debugger.resume ${JSON.stringify(result)}`)
-	});
+    Command('Debugger.resume', {}).then((result) => {
+        console.log(`Debugger.resume ${JSON.stringify(result)}`)
+    });
 };
 
 const pause = () => {
-	Command('Debugger.pause', {}).then((result) => {
-		console.log(`Debugger.pause ${JSON.stringify(result)}`);
-	});
+    Command('Debugger.pause', {}).then((result) => {
+        console.log(`Debugger.pause ${JSON.stringify(result)}`);
+    });
 };
 
 const exportBreakpoints = () => {
-	alert(Breakpoint.export());
+    alert(Breakpoint.export());
 };
 
 const importBreakpoints = () => {
@@ -223,41 +231,41 @@ const importBreakpoints = () => {
 
 // get vue.js content
 Command('Page.enable', {}).then(() => {
-	Command('Page.getResourceTree', {})
-		.then((result) => {
-			let frame = result.frameTree.frame;
-			ResourceViewer.render(result.frameTree);
-		});
+    Command('Page.getResourceTree', {})
+        .then((result) => {
+            let frame = result.frameTree.frame;
+            ResourceViewer.render(result.frameTree);
+        });
 });
 
 Command('Debugger.enable', {}).then(() => {
-	chrome.debugger.onEvent.addListener((source, method, obj) => {
-		console.log(`Event:${method}, ${JSON.stringify(obj)}`);
-		if (method === 'Debugger.paused'){
-			// when script is stopped by breakpoints
-			// scroll to it
-			if (obj.hitBreakpoints){
-				let lineNumber = obj.hitBreakpoints[0].split(':')[2] * 1;
-				SourceViewer.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
-				SourceViewer.toggleFocusClassAtLine(lineNumber, /*isAdd*/true);
-				SourceViewer.showLine(lineNumber);
-				onPaused(lineNumber);
-			}
-		} else if (method === 'Debugger.breakpointResolved'){
-			Breakpoint.collect(obj);
-		} else if (method === 'Debugger.resumed'){
-			onResume();
-		}
-	});
+    chrome.debugger.onEvent.addListener((source, method, obj) => {
+        console.log(`Event:${method}, ${JSON.stringify(obj)}`);
+        if (method === 'Debugger.paused'){
+            // when script is stopped by breakpoints
+            // scroll to it
+            if (obj.hitBreakpoints){
+                let lineNumber = obj.hitBreakpoints[0].split(':')[2] * 1;
+                SourceViewer.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
+                SourceViewer.toggleFocusClassAtLine(lineNumber, /*isAdd*/true);
+                SourceViewer.showLine(lineNumber);
+                onPaused(lineNumber);
+            }
+        } else if (method === 'Debugger.breakpointResolved'){
+            // Breakpoint.collect(obj);
+        } else if (method === 'Debugger.resumed'){
+            onResume();
+        }
+    });
 });
 
 // document.getElementById('btn-run').addEventListener('click', () => {
-// 	let expression = document.getElementById('textarea-inject').value;
-// 	Command('Runtime.evaluate', {
-// 		expression
-// 	}).then((result) => {
-// 		log(result);
-// 	});
+//  let expression = document.getElementById('textarea-inject').value;
+//  Command('Runtime.evaluate', {
+//      expression
+//  }).then((result) => {
+//      log(result);
+//  });
 // }, false);
 
 $btnResume.on('click', resume);
@@ -265,11 +273,11 @@ $btnPause.on('click', pause);
 $btnExport.on('click', exportBreakpoints);
 $btnImport.on('click', importBreakpoints);
 $btnReload.on('click', () => {
-	Command('Page.reload');
+    Command('Page.reload');
 });
 
 chrome.debugger.onDetach.addListener(() => {
-	window.close();
+    window.close();
 });
 
 
@@ -283,31 +291,31 @@ const SourceViewer = __webpack_require__(1);
 const $dom = $('#resources');
 
 const ResourceViewer = {
-	selectedUrl: null,
-	resources: null,
-	render(resources){
-		let html = resources.resources.filter(item => item.type === 'Script')
-			.map(item => {
-				let fileName = item.url.split('/').slice(-1)[0];
-				return `<span class="nav-group-item ${item.url === this.selectedUrl ? 'active': ''} resource-file" title="${item.url}">
-				    ${fileName}
-				  </span>`;
-			});
-		$dom.html(html);
+    selectedUrl: null,
+    resources: null,
+    render(resources){
+        let html = resources.resources.filter(item => item.type === 'Script')
+            .map(item => {
+                let fileName = item.url.split('/').slice(-1)[0];
+                return `<span class="nav-group-item ${item.url === this.selectedUrl ? 'active': ''} resource-file" title="${item.url}">
+                    ${fileName}
+                  </span>`;
+            });
+        $dom.html(html);
 
-		this.resources = resources;
-	}
+        this.resources = resources;
+    }
 };
 
 $(document).on('click', '.resource-file', (e) => {
-	let $target = $(e.target);
-	let url = $target.attr('title');
-	Command('Page.getResourceContent', {
-		frameId: ResourceViewer.resources.frame.id,
-		url
-	}).then(SourceViewer.render.bind(SourceViewer, url));
-	$target.siblings().removeClass('active');
-	$target.addClass('active');
+    let $target = $(e.target);
+    let url = $target.attr('title');
+    Command('Page.getResourceContent', {
+        frameId: ResourceViewer.resources.frame.id,
+        url
+    }).then(SourceViewer.render.bind(SourceViewer, url));
+    $target.siblings().removeClass('active');
+    $target.addClass('active');
 });
 
 module.exports = ResourceViewer;
@@ -316,54 +324,68 @@ module.exports = ResourceViewer;
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-const allBreakpoints = [];
+let allBreakpoints = [];
 const Command = __webpack_require__(0);
 const $btnExport = $('#btn-export');
 
 const Breakpoint = {
-	collect(obj){
-		allBreakpoints.push(obj);
-		$btnExport.prop('disabled', false);
-	},
+    collect(obj){
+        allBreakpoints.push(obj);
+        $btnExport.prop('disabled', false);
+    },
 
-	add(url, lineNumber){
-		return Command('Debugger.setBreakpointByUrl', {
-			lineNumber,
-			url
-		}).then((result) => {
-			this.collect(result);
-		});
-	},
+    add(url, lineNumber){
+        return Command('Debugger.setBreakpointByUrl', {
+            lineNumber,
+            url
+        }).then((result) => {
+            this.collect(result);
+            this.sync();
+        });
+    },
 
-	remove(url, lineNumber){
-		let breakpointId =  `${url}:${lineNumber}:0`;
-		return Command('Debugger.removeBreakpoint', {
-			breakpointId
-		}).then((result) => {
-			let index = -1;
-			let i = 0;
-			while(i< allBreakpoints.length){
-				if (allBreakpoints[i].breakpointId === breakpointId){
-					index = i;
-					break;
-				}
-				i++;
-			};
+    remove(url, lineNumber){
+        let breakpointId =  `${url}:${lineNumber}:0`;
+        return Command('Debugger.removeBreakpoint', {
+            breakpointId
+        }).then((result) => {
+            let index = -1;
+            let i = 0;
+            while(i< allBreakpoints.length){
+                if (allBreakpoints[i].breakpointId === breakpointId){
+                    index = i;
+                    break;
+                }
+                i++;
+            };
 
-			if (index > -1){
-				allBreakpoints.splice(index, 1);
-			}
+            if (index > -1){
+                allBreakpoints.splice(index, 1);
+            }
 
-			if (allBreakpoints.length < 1){
-				$btnExport.prop('disabled', true);
-			}
-		});
-	},
+            if (allBreakpoints.length < 1){
+                $btnExport.prop('disabled', true);
+            }
+            this.sync();
+        });
+    },
 
-	export(){
-		return allBreakpoints.map(item => item.breakpointId).join(',');
-	}
+    export(){
+        return allBreakpoints.map(item => item.breakpointId).join(',');
+    },
+
+    sync(){
+        chrome.runtime.sendMessage({msg:'SYNC_ALL_BREAKPOINTS', breakpoints: allBreakpoints});
+    },
+
+    getAll(){
+        return allBreakpoints;
+    }
 }
+
+chrome.runtime.sendMessage({msg:'GET_ALL_BREAKPOINTS'}, (res) => {
+    allBreakpoints.push(...res);
+});
 
 window.allBreakpoints = allBreakpoints;
 module.exports = Breakpoint;
