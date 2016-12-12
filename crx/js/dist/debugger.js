@@ -235,7 +235,7 @@ const pause = () => {
 };
 
 const exportBreakpoints = () => {
-    OverlayExport.show(Breakpoint.export());
+    OverlayExport.show(Breakpoint.exportToStr());
 };
 
 const importBreakpoints = () => {
@@ -384,7 +384,7 @@ const Breakpoint = {
         });
     },
 
-    export(){
+    exportToStr(){
         let ids = allBreakpoints.map(item => item.breakpointId);
         let obj = {};
         ids.forEach((id) => {

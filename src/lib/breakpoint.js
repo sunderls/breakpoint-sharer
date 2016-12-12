@@ -40,7 +40,7 @@ const Breakpoint = {
         });
     },
 
-    export(){
+    exportToStr(){
         let ids = allBreakpoints.map(item => item.breakpointId);
         let obj = {};
         ids.forEach((id) => {

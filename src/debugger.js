@@ -40,7 +40,7 @@ const pause = () => {
 };
 
 const exportBreakpoints = () => {
-    OverlayExport.show(Breakpoint.export());
+    OverlayExport.show(Breakpoint.exportToStr());
 };
 
 const importBreakpoints = () => {
