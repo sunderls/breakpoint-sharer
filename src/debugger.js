@@ -8,6 +8,7 @@ const $btnPause = $('#btn-pause');
 const $btnImport = $('#btn-import');
 const $btnExport = $('#btn-export');
 const $btnReload = $('#btn-reload');
+const $btnClear = $('#btn-clear');
 
 
 let pausedLineNumber = null;
@@ -43,6 +44,10 @@ const exportBreakpoints = () => {
 const importBreakpoints = () => {
 
 };
+
+const clear = () => {
+    SourceViewer.clearAllBreakpoints();
+}
 
 // get vue.js content
 Command('Page.enable', {}).then(() => {
@@ -87,6 +92,7 @@ $btnResume.on('click', resume);
 $btnPause.on('click', pause);
 $btnExport.on('click', exportBreakpoints);
 $btnImport.on('click', importBreakpoints);
+$btnClear.on('click', clear);
 $btnReload.on('click', () => {
     Command('Page.reload');
 });

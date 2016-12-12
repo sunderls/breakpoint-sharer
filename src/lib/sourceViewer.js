@@ -25,13 +25,12 @@ const SourceViewer = {
 
     toggleBreakpointAtLine(lineNumber, isAdd){
         if (isAdd){
-            Breakpoint.add(this.fileUrl, lineNumber)
+            return Breakpoint.add(this.fileUrl, lineNumber)
                 .then((result) => {
                     this.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
                 });
         } else {
-
-            Breakpoint.remove(this.fileUrl, lineNumber)
+            return Breakpoint.remove(`${this.fileUrl}:${lineNumber}:0`)
                 .then((result) => {
                     this.toggleBreakpointClassAtLine(lineNumber, false);
                 });
@@ -61,6 +60,13 @@ const SourceViewer = {
         let t = codeMirror.charCoords({line: lineNumber, ch: 0}, "local").top; 
         let middleHeight = codeMirror.getScrollerElement().offsetHeight / 2; 
         codeMirror.scrollTo(null, t - middleHeight - 5); 
+    },
+
+    clearAllBreakpoints(){
+        Breakpoint.getAll().forEach((breakpoint) => {
+            let lineNumber = breakpoint.breakpointId.split(':')[2] * 1;
+            return this.toggleBreakpointAtLine(lineNumber, false);
+        });
     }
 
 }

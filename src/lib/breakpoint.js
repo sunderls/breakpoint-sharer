@@ -1,11 +1,12 @@
 let allBreakpoints = [];
 const Command = require('./command');
 const $btnExport = $('#btn-export');
+const $btnClear = $('#btn-clear');
 
 const Breakpoint = {
     collect(obj){
         allBreakpoints.push(obj);
-        $btnExport.prop('disabled', false);
+        
     },
 
     add(url, lineNumber){
@@ -18,8 +19,7 @@ const Breakpoint = {
         });
     },
 
-    remove(url, lineNumber){
-        let breakpointId =  `${url}:${lineNumber}:0`;
+    remove(breakpointId){
         return Command('Debugger.removeBreakpoint', {
             breakpointId
         }).then((result) => {
@@ -37,9 +37,6 @@ const Breakpoint = {
                 allBreakpoints.splice(index, 1);
             }
 
-            if (allBreakpoints.length < 1){
-                $btnExport.prop('disabled', true);
-            }
             this.sync();
         });
     },
@@ -49,17 +46,30 @@ const Breakpoint = {
     },
 
     sync(){
+         this.updateBtns();
         chrome.runtime.sendMessage({msg:'SYNC_ALL_BREAKPOINTS', breakpoints: allBreakpoints});
     },
 
     getAll(){
         return allBreakpoints;
+    },
+
+    updateBtns(){
+        if (allBreakpoints.length > 0){
+            $btnExport.prop('disabled', false);
+            $btnClear.prop('disabled', false);
+        } else {
+            $btnExport.prop('disabled', true);
+            $btnClear.prop('disabled', true);
+        }
+
+        $btnClear.text(`clear all(${allBreakpoints.length})`);
     }
 }
 
 chrome.runtime.sendMessage({msg:'GET_ALL_BREAKPOINTS'}, (res) => {
     allBreakpoints.push(...res);
+    Breakpoint.updateBtns();
 });
 
-window.allBreakpoints = allBreakpoints;
 module.exports = Breakpoint;

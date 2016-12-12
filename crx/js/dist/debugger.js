@@ -124,13 +124,12 @@ const SourceViewer = {
 
     toggleBreakpointAtLine(lineNumber, isAdd){
         if (isAdd){
-            Breakpoint.add(this.fileUrl, lineNumber)
+            return Breakpoint.add(this.fileUrl, lineNumber)
                 .then((result) => {
                     this.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
                 });
         } else {
-
-            Breakpoint.remove(this.fileUrl, lineNumber)
+            return Breakpoint.remove(`${this.fileUrl}:${lineNumber}:0`)
                 .then((result) => {
                     this.toggleBreakpointClassAtLine(lineNumber, false);
                 });
@@ -160,6 +159,13 @@ const SourceViewer = {
         let t = codeMirror.charCoords({line: lineNumber, ch: 0}, "local").top; 
         let middleHeight = codeMirror.getScrollerElement().offsetHeight / 2; 
         codeMirror.scrollTo(null, t - middleHeight - 5); 
+    },
+
+    clearAllBreakpoints(){
+        Breakpoint.getAll().forEach((breakpoint) => {
+            let lineNumber = breakpoint.breakpointId.split(':')[2] * 1;
+            return this.toggleBreakpointAtLine(lineNumber, false);
+        });
     }
 
 }
@@ -193,6 +199,7 @@ const $btnPause = $('#btn-pause');
 const $btnImport = $('#btn-import');
 const $btnExport = $('#btn-export');
 const $btnReload = $('#btn-reload');
+const $btnClear = $('#btn-clear');
 
 
 let pausedLineNumber = null;
@@ -228,6 +235,10 @@ const exportBreakpoints = () => {
 const importBreakpoints = () => {
 
 };
+
+const clear = () => {
+    SourceViewer.clearAllBreakpoints();
+}
 
 // get vue.js content
 Command('Page.enable', {}).then(() => {
@@ -272,6 +283,7 @@ $btnResume.on('click', resume);
 $btnPause.on('click', pause);
 $btnExport.on('click', exportBreakpoints);
 $btnImport.on('click', importBreakpoints);
+$btnClear.on('click', clear);
 $btnReload.on('click', () => {
     Command('Page.reload');
 });
@@ -327,11 +339,12 @@ module.exports = ResourceViewer;
 let allBreakpoints = [];
 const Command = __webpack_require__(0);
 const $btnExport = $('#btn-export');
+const $btnClear = $('#btn-clear');
 
 const Breakpoint = {
     collect(obj){
         allBreakpoints.push(obj);
-        $btnExport.prop('disabled', false);
+        
     },
 
     add(url, lineNumber){
@@ -344,8 +357,7 @@ const Breakpoint = {
         });
     },
 
-    remove(url, lineNumber){
-        let breakpointId =  `${url}:${lineNumber}:0`;
+    remove(breakpointId){
         return Command('Debugger.removeBreakpoint', {
             breakpointId
         }).then((result) => {
@@ -363,9 +375,6 @@ const Breakpoint = {
                 allBreakpoints.splice(index, 1);
             }
 
-            if (allBreakpoints.length < 1){
-                $btnExport.prop('disabled', true);
-            }
             this.sync();
         });
     },
@@ -375,19 +384,32 @@ const Breakpoint = {
     },
 
     sync(){
+         this.updateBtns();
         chrome.runtime.sendMessage({msg:'SYNC_ALL_BREAKPOINTS', breakpoints: allBreakpoints});
     },
 
     getAll(){
         return allBreakpoints;
+    },
+
+    updateBtns(){
+        if (allBreakpoints.length > 0){
+            $btnExport.prop('disabled', false);
+            $btnClear.prop('disabled', false);
+        } else {
+            $btnExport.prop('disabled', true);
+            $btnClear.prop('disabled', true);
+        }
+
+        $btnClear.text(`clear all(${allBreakpoints.length})`);
     }
 }
 
 chrome.runtime.sendMessage({msg:'GET_ALL_BREAKPOINTS'}, (res) => {
     allBreakpoints.push(...res);
+    Breakpoint.updateBtns();
 });
 
-window.allBreakpoints = allBreakpoints;
 module.exports = Breakpoint;
 
 /***/ }
