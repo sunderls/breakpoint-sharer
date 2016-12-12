@@ -48,57 +48,96 @@
 		.focused-line {
 			background-color: #BBDEFB !important;
 		}
+
+		.overlay {
+			position: fixed;
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			z-index: 10;
+			background-color: #00000077;
+			text-align: center;
+		}
+
+		.overlay-title {
+			color: #fff;
+		}
+
+		#overlay-import textarea, #overlay-export textarea{
+			width: 100%;
+			height: 30%;
+			margin-bottom: 20px;
+		}
 	</style>
 </head>
 <body>
 <div class="window">
 	<div class="window-content">
-	<div class="pane-group">
-		<div class="pane-one-fourth sidebar">
+		<div class="pane-group">
+			<div class="pane-one-fourth sidebar">
+				<header class="toolbar toolbar-header">
+					<div class="toolbar-actions" style="text-align: center">
+						<div class="btn-group">
+							<button class="btn btn-default" id="btn-reload">
+								<span>reload webpage</span>
+							</button>
+						</div>
+					</div>
+				</header>
+			<nav class="nav-group">
+				<h5 class="nav-group-title">source</h5>
+				<div id="resources">
+				</div>
+			</nav>
+		</div>
+		<div class="pane" id="pane-main">
 			<header class="toolbar toolbar-header">
 				<div class="toolbar-actions" style="text-align: center">
+					<strong>breakpoints </strong>
 					<div class="btn-group">
-						<button class="btn btn-default" id="btn-reload">
-							<span>reload webpage</span>
+						<button class="btn btn-default" id="btn-resume" disabled="">
+							resume
+						</button>
+						<button class="btn btn-default" id="btn-import">
+							import
+						</button>
+						<button class="btn btn-default" id="btn-export">
+							export
+						</button>
+						<button class="btn btn-default" id="btn-clear">
+							clear all(0)
 						</button>
 					</div>
 				</div>
 			</header>
-		<nav class="nav-group">
-			<h5 class="nav-group-title">source</h5>
-			<div id="resources">
-			</div>
-		</nav>
+		</div>
+		<div class="overlay" id="overlay-import" style="display: none">
+			<h1 class="overlay-title">Paste breakpoints ↓ </h1>
+			<textarea></textarea>
+			<p>
+				<button class="cancel">cancel</button>
+				<button class="confirm">go</button>
+			</p>
+		</div>
+		<div class="overlay" id="overlay-export" style="display: none">
+			<h1 class="overlay-title">Copy ↓ and Share</h1>
+			<textarea></textarea>
+			<button class="cancel">cancel</button>
+		</div>
 	</div>
-	<div class="pane" id="pane-main">
-		<header class="toolbar toolbar-header">
-			<div class="toolbar-actions" style="text-align: center">
-				<strong>breakpoints </strong>
-				<div class="btn-group">
-					<button class="btn btn-default" id="btn-resume" disabled="">
-						resume
-					</button>
-					<button class="btn btn-default" id="btn-import">
-						import
-					</button>
-					<button class="btn btn-default" id="btn-export">
-						export
-					</button>
-					<button class="btn btn-default" id="btn-clear">
-						clear all(0)
-					</button>
-				</div>
-			</div>
-		</header>
-	</div>
-	</div>
-  </div>
-  <!--<footer class="toolbar toolbar-footer">
+</div>
+<!--<footer class="toolbar toolbar-footer">
 	<h1 class="title">console</h1>
 	<div style="height:40px;overflow-y: scroll;background-color: #fff">
 	</div>
 	<input type="text" style="height: 30px;width:100%;outline:none;border: none;padding: 0 5px;font-family:monospace;border-top: 1px solid #eee" placeholder="enter here">
-  </footer>-->
+</footer>-->
+
 </div>
 <script src="./js/lib/jquery.js"></script>
 <script src="./js/lib/cm/codemirror.js"></script>

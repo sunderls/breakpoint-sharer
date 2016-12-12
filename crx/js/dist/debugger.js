@@ -163,8 +163,14 @@ const SourceViewer = {
 
     clearAllBreakpoints(){
         Breakpoint.getAll().forEach((breakpoint) => {
-            let lineNumber = breakpoint.breakpointId.split(':')[2] * 1;
-            return this.toggleBreakpointAtLine(lineNumber, false);
+            let segs = breakpoint.breakpointId.split(':');
+            let url = segs.slice(0, 2).join(':');
+            let lineNumber = segs[2] * 1;
+            if (url === this.fileUrl){
+                return this.toggleBreakpointAtLine(lineNumber, false);
+            } else {
+                Breakpoint.remove(breakpoint.breakpointId);
+            }
         });
     }
 
@@ -172,7 +178,6 @@ const SourceViewer = {
 
 
 codeMirror.on('gutterClick', (cm, line, gutter, e) => {
-    console.log(cm, line, gutter, e);
     let info = cm.getLineHandle(line);
     if (info.gutterClass === 'breakpoint'){
         SourceViewer.toggleBreakpointAtLine(line, false);
@@ -181,7 +186,6 @@ codeMirror.on('gutterClick', (cm, line, gutter, e) => {
     }
 });
 
-window.codeMirror = codeMirror;
 module.exports = SourceViewer;
 
 /***/ },
@@ -193,6 +197,8 @@ const Command = __webpack_require__(0);
 const SourceViewer = __webpack_require__(1);
 const ResourceViewer = __webpack_require__(5);
 const Breakpoint = __webpack_require__(6);
+const OverlayExport = __webpack_require__(7);
+const OverlayImport = __webpack_require__(8);
 
 const $btnResume = $('#btn-resume');
 const $btnPause = $('#btn-pause');
@@ -229,11 +235,11 @@ const pause = () => {
 };
 
 const exportBreakpoints = () => {
-    alert(Breakpoint.export());
+    OverlayExport.show(Breakpoint.export());
 };
 
 const importBreakpoints = () => {
-
+    OverlayImport.show();
 };
 
 const clear = () => {
@@ -344,7 +350,6 @@ const $btnClear = $('#btn-clear');
 const Breakpoint = {
     collect(obj){
         allBreakpoints.push(obj);
-        
     },
 
     add(url, lineNumber){
@@ -372,7 +377,7 @@ const Breakpoint = {
             };
 
             if (index > -1){
-                allBreakpoints.splice(index, 1);
+            allBreakpoints.splice(index, 1);
             }
 
             this.sync();
@@ -411,6 +416,80 @@ chrome.runtime.sendMessage({msg:'GET_ALL_BREAKPOINTS'}, (res) => {
 });
 
 module.exports = Breakpoint;
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+const $overlayExport = $('#overlay-export');
+const $input = $overlayExport.find('textarea');
+
+const OverlayExport = {
+	show(text){
+		$input.val(text || '');
+		$overlayExport.show();
+		$input.select();
+	},
+
+	hide(){
+		$overlayExport.hide();
+	}
+}
+
+$overlayExport.on('click', '.cancel', ()=> OverlayExport.hide());
+$overlayExport.on('click', '.confirm', ()=> {
+	if ($input.val()){
+
+	}
+});
+
+module.exports = OverlayExport;
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+const $overlayImport = $('#overlay-import');
+const $input = $overlayImport.find('textarea');
+const SourceViewer = __webpack_require__(1);
+const Breakpoint = __webpack_require__(6);
+
+const OverlayImport = {
+	show(){
+		$input.val('');
+		$overlayImport.show();
+	},
+
+	hide(){
+		$overlayImport.hide();
+	},
+
+	import(str){
+		let breakpointIds = str.trim().split(',');
+		SourceViewer.clearAllBreakpoints();
+
+		breakpointIds.forEach((item) => {
+			let segs = item.split(':');
+			let url = segs.slice(0, 2).join(':');
+			let lineNumber = segs[2] * 1;
+
+			Breakpoint.add(url, lineNumber);
+
+			if (url === SourceViewer.fileUrl){
+				SourceViewer.toggleBreakpointClassAtLine(lineNumber, true);
+			}
+		});
+
+		this.hide();
+	}
+}
+
+$overlayImport.on('click', '.cancel', ()=> OverlayImport.hide());
+$overlayImport.on('click', '.confirm', ()=> {
+	OverlayImport.import($input.val());
+});
+
+module.exports = OverlayImport;
 
 /***/ }
 /******/ ]);

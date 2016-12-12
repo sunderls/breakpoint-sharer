@@ -6,7 +6,6 @@ const $btnClear = $('#btn-clear');
 const Breakpoint = {
     collect(obj){
         allBreakpoints.push(obj);
-        
     },
 
     add(url, lineNumber){
@@ -34,7 +33,7 @@ const Breakpoint = {
             };
 
             if (index > -1){
-                allBreakpoints.splice(index, 1);
+            allBreakpoints.splice(index, 1);
             }
 
             this.sync();

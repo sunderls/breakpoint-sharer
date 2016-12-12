@@ -64,8 +64,14 @@ const SourceViewer = {
 
     clearAllBreakpoints(){
         Breakpoint.getAll().forEach((breakpoint) => {
-            let lineNumber = breakpoint.breakpointId.split(':')[2] * 1;
-            return this.toggleBreakpointAtLine(lineNumber, false);
+            let segs = breakpoint.breakpointId.split(':');
+            let url = segs.slice(0, 2).join(':');
+            let lineNumber = segs[2] * 1;
+            if (url === this.fileUrl){
+                return this.toggleBreakpointAtLine(lineNumber, false);
+            } else {
+                Breakpoint.remove(breakpoint.breakpointId);
+            }
         });
     }
 
@@ -73,7 +79,6 @@ const SourceViewer = {
 
 
 codeMirror.on('gutterClick', (cm, line, gutter, e) => {
-    console.log(cm, line, gutter, e);
     let info = cm.getLineHandle(line);
     if (info.gutterClass === 'breakpoint'){
         SourceViewer.toggleBreakpointAtLine(line, false);
@@ -82,5 +87,4 @@ codeMirror.on('gutterClick', (cm, line, gutter, e) => {
     }
 });
 
-window.codeMirror = codeMirror;
 module.exports = SourceViewer;

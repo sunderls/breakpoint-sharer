@@ -2,6 +2,8 @@ const Command = require('./lib/command');
 const SourceViewer = require('./lib/sourceViewer');
 const ResourceViewer = require('./lib/resourceViewer');
 const Breakpoint = require('./lib/breakpoint');
+const OverlayExport = require('./lib/overlayExport');
+const OverlayImport = require('./lib/overlayImport');
 
 const $btnResume = $('#btn-resume');
 const $btnPause = $('#btn-pause');
@@ -38,11 +40,11 @@ const pause = () => {
 };
 
 const exportBreakpoints = () => {
-    alert(Breakpoint.export());
+    OverlayExport.show(Breakpoint.export());
 };
 
 const importBreakpoints = () => {
-
+    OverlayImport.show();
 };
 
 const clear = () => {
