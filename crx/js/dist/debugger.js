@@ -385,7 +385,26 @@ const Breakpoint = {
     },
 
     export(){
-        return allBreakpoints.map(item => item.breakpointId).join(',');
+        let ids = allBreakpoints.map(item => item.breakpointId);
+        let obj = {};
+        ids.forEach((id) => {
+            let segs = id.split(':');
+            let url = segs.slice(0, 2).join(':');
+            let other = segs.slice(2, 4).join(':');
+
+            if (!obj[url]){
+                obj[url] = [];
+            }
+
+            obj[url].push(other);
+        });
+
+        let result = {
+            v: 1,
+            breakpoints: obj
+        };
+
+        return JSON.stringify(result);
     },
 
     sync(){
@@ -465,7 +484,19 @@ const OverlayImport = {
 	},
 
 	import(str){
-		let breakpointIds = str.trim().split(',');
+		let breakpointIds = [];
+		try {
+			let data = JSON.parse(str.trim());
+			for(let url in data.breakpoints){
+				data.breakpoints[url].forEach((line) => {
+					breakpointIds.push(url + ':' + line);
+				});
+			}
+		} catch(e){
+			alert('format invalid');
+			return;
+		}
+
 		SourceViewer.clearAllBreakpoints();
 
 		breakpointIds.forEach((item) => {
