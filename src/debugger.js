@@ -11,10 +11,11 @@ const $btnImport = $('#btn-import');
 const $btnExport = $('#btn-export');
 const $btnReload = $('#btn-reload');
 const $btnClear = $('#btn-clear');
+const $consoleInput = $('#console-input');
+const $consoleLogs = $('#console-logs');
 
 
 let pausedLineNumber = null;
-
 const onPaused = (lineNumber) => {
     $btnResume.prop('disabled', false);
     $btnPause.prop('disabled', true);
@@ -51,7 +52,7 @@ const clear = () => {
     SourceViewer.clearAllBreakpoints();
 }
 
-// get vue.js content
+// get resource tree
 Command('Page.enable', {}).then(() => {
     Command('Page.getResourceTree', {})
         .then((result) => {
@@ -60,9 +61,9 @@ Command('Page.enable', {}).then(() => {
         });
 });
 
+// enable debugger
 Command('Debugger.enable', {}).then(() => {
     chrome.debugger.onEvent.addListener((source, method, obj) => {
-        console.log(`Event:${method}, ${JSON.stringify(obj)}`);
         if (method === 'Debugger.paused'){
             // when script is stopped by breakpoints
             // scroll to it
@@ -81,6 +82,31 @@ Command('Debugger.enable', {}).then(() => {
     });
 });
 
+$consoleInput.on('keypress', (e) => {
+    if (e.which === 13){
+        let expression = $consoleInput.val()
+        Command('Runtime.evaluate', {
+            expression,
+            returnByValue: true
+         }).then((data) => {
+            $consoleLogs.append(`<div class="console-log">${expression}</div>`);
+            let result = data.result;
+            switch (result.type){
+                case 'object':
+                    result = JSON.stringify(result.value);
+                    break;
+                case 'function':
+                    result = '[function]'
+                default:
+                    result = result.value;
+                    break;
+            }
+            $consoleLogs.append(`<div class="console-log result"> ⇨　${result}</div>`);
+            $consoleLogs.scrollTop($consoleLogs[0].scrollHeight);
+            $consoleInput.val('').focus();
+         });
+    }
+});
 // document.getElementById('btn-run').addEventListener('click', () => {
 //  let expression = document.getElementById('textarea-inject').value;
 //  Command('Runtime.evaluate', {

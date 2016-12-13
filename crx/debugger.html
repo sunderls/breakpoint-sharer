@@ -74,6 +74,25 @@
 			height: 30%;
 			margin-bottom: 20px;
 		}
+
+		#console-logs {
+			height:70px;
+			overflow-y: scroll;
+			background-color: #fff;
+		}
+
+		#console-input, .console-log {
+			width: 100%;
+			padding: 5px 10px;
+			background-color: #fff;
+			outline: none;
+			border: 0;
+			border-top: 1px solid #eee;
+		}
+
+		.console-log.result {
+			color: #888;
+		}
 	</style>
 </head>
 <body>
@@ -132,12 +151,12 @@
 		</div>
 	</div>
 </div>
-<!--<footer class="toolbar toolbar-footer">
+<footer class="toolbar toolbar-footer">
 	<h1 class="title">console</h1>
-	<div style="height:40px;overflow-y: scroll;background-color: #fff">
+	<div id="console-logs">
 	</div>
-	<input type="text" style="height: 30px;width:100%;outline:none;border: none;padding: 0 5px;font-family:monospace;border-top: 1px solid #eee" placeholder="enter here">
-</footer>-->
+	<input type="text" placeholder="enter here" id="console-input">
+</footer>
 
 </div>
 <script src="./js/lib/jquery.js"></script>
