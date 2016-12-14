@@ -1,6 +1,6 @@
 {
   "name": "Breakpoint-sharer",
   "tagline": "breakpoint-sharer",
-  "body": "<img width=\"640\" alt=\"screenshot1\" src=\"https://cloud.githubusercontent.com/assets/2394070/21148587/12b74dc0-c19c-11e6-9303-0b3a6871515d.png\">\r\n\r\n### breakpoint sharer\r\nBreakpoint Sharer is just a simple Chrome Extension that enables you to import/export debugging breakpoints, to explain/learn code logic better\r\n\r\n### Chrome Extension\r\n\r\ninstall here : https://chrome.google.com/webstore/detail/hkbgnljbklddbfmkmeaoolmdflbbofmi/publish-accepted\r\n\r\n### usage\r\n\r\nBasically it is similar to original Chrome DevTool, with breakpoint import/export function, but lacking many many many other features. ",
+  "body": "<img width=\"640\" alt=\"screenshot1\" src=\"https://cloud.githubusercontent.com/assets/2394070/21148587/12b74dc0-c19c-11e6-9303-0b3a6871515d.png\">\r\n\r\n### breakpoint sharer\r\nBreakpoint Sharer is just a simple Chrome Extension that enables you to import/export debugging breakpoints, to explain/learn code logic better\r\n\r\n### Chrome Extension\r\n\r\ninstall here : https://chrome.google.com/webstore/detail/hkbgnljbklddbfmkmeaoolmdflbbofmi\r\n\r\n### usage\r\n\r\nBasically it is similar to original Chrome DevTool, with breakpoint import/export function, but lacking many many many other features. ",
   "note": "Don't delete this file! It's used internally to help with page regeneration."
 }
