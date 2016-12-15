@@ -93,13 +93,20 @@
 		.console-log.result {
 			color: #888;
 		}
+
+		#narration {
+			max-height: 80px;
+			background-color: #e1f5fe;
+			padding: 10px;
+			line-height: 1.5;
+		}
 	</style>
 </head>
 <body>
 <div class="window">
 	<div class="window-content">
 		<div class="pane-group">
-			<div class="pane-one-fourth sidebar">
+			<div class="sidebar" style="width: 150px">
 				<header class="toolbar toolbar-header">
 					<div class="toolbar-actions" style="text-align: center">
 						<div class="btn-group">
@@ -109,48 +116,55 @@
 						</div>
 					</div>
 				</header>
-			<nav class="nav-group">
-				<h5 class="nav-group-title">source</h5>
-				<div id="resources">
-				</div>
-			</nav>
-		</div>
-		<div class="pane" id="pane-main">
-			<header class="toolbar toolbar-header">
-				<div class="toolbar-actions" style="text-align: center">
-					<strong>breakpoints </strong>
-					<div class="btn-group">
-						<button class="btn btn-default" id="btn-resume" disabled="">
-							resume
-						</button>
-						<button class="btn btn-default" id="btn-import">
-							import
-						</button>
-						<button class="btn btn-default" id="btn-export">
-							export
-						</button>
-						<button class="btn btn-default" id="btn-clear">
-							clear all(0)
-						</button>
+				<nav class="nav-group">
+					<h5 class="nav-group-title">source</h5>
+					<div id="resources">
 					</div>
-				</div>
-			</header>
-		</div>
-		<div class="overlay" id="overlay-import" style="display: none">
-			<h1 class="overlay-title">Paste breakpoints ↓ </h1>
-			<textarea></textarea>
-			<p>
+				</nav>
+			</div>
+			<div class="pane" id="pane-main">
+				<header class="toolbar toolbar-header">
+					<div class="toolbar-actions" style="text-align: center">
+						<strong>breakpoints </strong>
+						<div class="btn-group">
+							<button class="btn btn-default" id="btn-resume" disabled="">
+								resume
+							</button>
+							<button class="btn btn-default" id="btn-import">
+								import
+							</button>
+							<button class="btn btn-default" id="btn-export">
+								export
+							</button>
+							<button class="btn btn-default" id="btn-clear">
+								clear all(0)
+							</button>
+						</div>
+					</div>
+				</header>
+			</div>
+			
+			<div class="overlay" id="overlay-import" style="display: none">
+				<h1 class="overlay-title">Paste breakpoints ↓ </h1>
+				<textarea></textarea>
+				<p>
+					<button class="cancel">cancel</button>
+					<button class="confirm">go</button>
+				</p>
+			</div>
+			<div class="overlay" id="overlay-export" style="display: none">
+				<h1 class="overlay-title">Copy ↓ and Share</h1>
+				<textarea></textarea>
 				<button class="cancel">cancel</button>
-				<button class="confirm">go</button>
-			</p>
-		</div>
-		<div class="overlay" id="overlay-export" style="display: none">
-			<h1 class="overlay-title">Copy ↓ and Share</h1>
-			<textarea></textarea>
-			<button class="cancel">cancel</button>
+			</div>
 		</div>
 	</div>
-</div>
+<footer class="">
+	<div id="narration">
+		The code here is to create watchers. Wathcer will be responsible for...<br>The code here is to create watchers. Wathcer will be responsible for...<br>The code here is to create watchers. Wathcer will be responsible for...<br>
+	</div>
+</footer>
+
 <footer class="toolbar toolbar-footer">
 	<h1 class="title">console</h1>
 	<div id="console-logs">
