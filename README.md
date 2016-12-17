@@ -1,6 +1,8 @@
 # breakpoint sharer
 
-as the name says.
+as the name says. 
+
+homepage: https://sunderls.github.io/breakpoint-sharer/
 
 ## license
 
