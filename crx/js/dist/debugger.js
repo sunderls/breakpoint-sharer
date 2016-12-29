@@ -33,18 +33,16 @@
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
 
-/******/ 	// identity function for calling harmony imports with the correct context
+/******/ 	// identity function for calling harmory imports with the correct context
 /******/ 	__webpack_require__.i = function(value) { return value; };
 
-/******/ 	// define getter function for harmony exports
+/******/ 	// define getter function for harmory exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
-/******/ 		}
+/******/ 		Object.defineProperty(exports, name, {
+/******/ 			configurable: false,
+/******/ 			enumerable: true,
+/******/ 			get: getter
+/******/ 		});
 /******/ 	};
 
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -508,6 +506,27 @@ exports.debounce = function(func, skip){
 };
 
 
+exports.generateDescription = (value) => {
+	// currently not recursive
+	switch (value.type) {
+		case 'number':
+			return value.value;
+		case 'string':
+			return `'${value.value}'`;
+		case 'object':
+			if (value.subtype === 'null'){
+				return 'null';
+			} else {
+				return `[object]`;
+			}
+		case 'undefined':
+			return 'undefined';
+		case 'function':
+			return '[function]';
+
+	}
+}
+
 /***/ },
 /* 8 */,
 /* 9 */
@@ -523,6 +542,7 @@ const Breakpoint = __webpack_require__(0);
 const OverlayExport = __webpack_require__(4);
 const OverlayImport = __webpack_require__(5);
 const Narration = __webpack_require__(3);
+const {generateDescription} = __webpack_require__(7);
 
 const $btnResume = $('#btn-resume');
 const $btnPause = $('#btn-pause');
@@ -637,16 +657,23 @@ $consoleInput.on('keypress', (e) => {
             let result = data.result;
             switch (result.type){
                 case 'object':
-                    Command('Runtime.getProperties', {
-                        objectId: result.objectId,
-                        ownProperties: true
-                    }).then((data) => {
-                        result = JSON.stringify(data);
-                        log(result);
-                    });
+                    if (result.subType === 'array'){
+                        log(result.description); 
+                    } else {
+                        Command('Runtime.getProperties', {
+                            objectId: result.objectId,
+                            ownProperties: true
+                        }).then((data) => {
+                            let str = '{' + data.result.filter(item => item.enumerable)
+                                .map(item =>`${item.name}:${generateDescription(item.value)}`).join(',') + '}';
+                            log(str);
+                        });
+                    }
                     break;
                 case 'function':
-                    result = '[function]'
+                    result = result.description;
+                    log(result);
+                    break;
                 default:
                     result = result.value;
                     log(result);

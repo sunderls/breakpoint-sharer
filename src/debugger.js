@@ -8,6 +8,7 @@ const Breakpoint = require('./lib/breakpoint');
 const OverlayExport = require('./lib/overlayExport');
 const OverlayImport = require('./lib/overlayImport');
 const Narration = require('./lib/narration');
+const {generateDescription} = require('./lib/helper');
 
 const $btnResume = $('#btn-resume');
 const $btnPause = $('#btn-pause');
@@ -122,16 +123,23 @@ $consoleInput.on('keypress', (e) => {
             let result = data.result;
             switch (result.type){
                 case 'object':
-                    Command('Runtime.getProperties', {
-                        objectId: result.objectId,
-                        ownProperties: true
-                    }).then((data) => {
-                        result = JSON.stringify(data);
-                        log(result);
-                    });
+                    if (result.subType === 'array'){
+                        log(result.description); 
+                    } else {
+                        Command('Runtime.getProperties', {
+                            objectId: result.objectId,
+                            ownProperties: true
+                        }).then((data) => {
+                            let str = '{' + data.result.filter(item => item.enumerable)
+                                .map(item =>`${item.name}:${generateDescription(item.value)}`).join(',') + '}';
+                            log(str);
+                        });
+                    }
                     break;
                 case 'function':
-                    result = '[function]'
+                    result = result.description;
+                    log(result);
+                    break;
                 default:
                     result = result.value;
                     log(result);
