@@ -1,20 +1,27 @@
+/**
+ * manage breakpoints
+ */
+
 let allBreakpoints = [];
 const Command = require('./command');
 const $btnExport = $('#btn-export');
 const $btnClear = $('#btn-clear');
 
 const Breakpoint = {
+    VERSION: 1,
     collect(obj){
         allBreakpoints.push(obj);
     },
 
-    add(url, lineNumber){
+    add(url, lineNumber, comment){
         return Command('Debugger.setBreakpointByUrl', {
             lineNumber,
             url
         }).then((result) => {
+            result.comment = comment;
             this.collect(result);
             this.sync();
+            return result;
         });
     },
 
@@ -41,30 +48,34 @@ const Breakpoint = {
     },
 
     exportToStr(){
-        let ids = allBreakpoints.map(item => item.breakpointId);
-        let obj = {};
-        ids.forEach((id) => {
+        let breakpoints = {};
+        let ids = allBreakpoints.forEach(item => {
+            let id = item.breakpointId;
             let segs = id.split(':');
             let url = segs.slice(0, 2).join(':');
-            let other = segs.slice(2, 4).join(':');
+            let other = [segs.slice(2, 4).join(':')];
 
-            if (!obj[url]){
-                obj[url] = [];
+            if (item.comment){
+                other.push(item.comment);
             }
 
-            obj[url].push(other);
+            if (!breakpoints[url]){
+                breakpoints[url] = [];
+            }
+
+            breakpoints[url].push(other.join(','));
         });
 
         let result = {
-            v: 1,
-            breakpoints: obj
+            v: this.VERSION,
+            breakpoints: breakpoints
         };
 
         return JSON.stringify(result);
     },
 
     sync(){
-         this.updateBtns();
+        this.updateBtns();
         chrome.runtime.sendMessage({msg:'SYNC_ALL_BREAKPOINTS', breakpoints: allBreakpoints});
     },
 
@@ -82,6 +93,10 @@ const Breakpoint = {
         }
 
         $btnClear.text(`clear all(${allBreakpoints.length})`);
+    },
+
+    search(breakpointId){
+        return allBreakpoints.filter(bp => bp.breakpointId === breakpointId)[0];
     }
 }
 

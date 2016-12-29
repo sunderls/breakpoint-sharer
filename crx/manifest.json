@@ -1,7 +1,7 @@
 {
 	"name": "Breakpoint Sharer",
 	"description": "a breakpoint sharer",
-	"version": "0.1",
+	"version": "0.2",
 	"permissions": [
 		"debugger", "tabs"
 	],

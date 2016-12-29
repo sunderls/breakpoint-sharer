@@ -1,4 +1,6 @@
-// store all breakpoints
+/**
+ * store all breakpoints
+ */
 let allBreakpoints = [];
 let targetTab = null
 let debuggerWindow = null;

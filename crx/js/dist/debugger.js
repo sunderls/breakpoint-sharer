@@ -33,16 +33,18 @@
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
 
-/******/ 	// identity function for calling harmory imports with the correct context
+/******/ 	// identity function for calling harmony imports with the correct context
 /******/ 	__webpack_require__.i = function(value) { return value; };
 
-/******/ 	// define getter function for harmory exports
+/******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		Object.defineProperty(exports, name, {
-/******/ 			configurable: false,
-/******/ 			enumerable: true,
-/******/ 			get: getter
-/******/ 		});
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
 /******/ 	};
 
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -68,6 +70,9 @@
 /* 0 */
 /***/ function(module, exports) {
 
+/**
+ * Command request helper
+ */
 let params = location.search.slice(1).split('&').reduce((pre, curr) => {
     let pair = curr.split('=');
     pre[pair[0]] = pair[1];
@@ -93,9 +98,14 @@ const Command = (command, params) => {
 
 module.exports = Command;
 
+
 /***/ },
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
+
+/**
+ * manage breakpoints
+ */
 
 let allBreakpoints = [];
 const Command = __webpack_require__(0);
@@ -103,17 +113,20 @@ const $btnExport = $('#btn-export');
 const $btnClear = $('#btn-clear');
 
 const Breakpoint = {
+    VERSION: 1,
     collect(obj){
         allBreakpoints.push(obj);
     },
 
-    add(url, lineNumber){
+    add(url, lineNumber, comment){
         return Command('Debugger.setBreakpointByUrl', {
             lineNumber,
             url
         }).then((result) => {
+            result.comment = comment;
             this.collect(result);
             this.sync();
+            return result;
         });
     },
 
@@ -140,30 +153,34 @@ const Breakpoint = {
     },
 
     exportToStr(){
-        let ids = allBreakpoints.map(item => item.breakpointId);
-        let obj = {};
-        ids.forEach((id) => {
+        let breakpoints = {};
+        let ids = allBreakpoints.forEach(item => {
+            let id = item.breakpointId;
             let segs = id.split(':');
             let url = segs.slice(0, 2).join(':');
-            let other = segs.slice(2, 4).join(':');
+            let other = [segs.slice(2, 4).join(':')];
 
-            if (!obj[url]){
-                obj[url] = [];
+            if (item.comment){
+                other.push(item.comment);
             }
 
-            obj[url].push(other);
+            if (!breakpoints[url]){
+                breakpoints[url] = [];
+            }
+
+            breakpoints[url].push(other.join(','));
         });
 
         let result = {
-            v: 1,
-            breakpoints: obj
+            v: this.VERSION,
+            breakpoints: breakpoints
         };
 
         return JSON.stringify(result);
     },
 
     sync(){
-         this.updateBtns();
+        this.updateBtns();
         chrome.runtime.sendMessage({msg:'SYNC_ALL_BREAKPOINTS', breakpoints: allBreakpoints});
     },
 
@@ -181,6 +198,10 @@ const Breakpoint = {
         }
 
         $btnClear.text(`clear all(${allBreakpoints.length})`);
+    },
+
+    search(breakpointId){
+        return allBreakpoints.filter(bp => bp.breakpointId === breakpointId)[0];
     }
 }
 
@@ -191,13 +212,18 @@ chrome.runtime.sendMessage({msg:'GET_ALL_BREAKPOINTS'}, (res) => {
 
 module.exports = Breakpoint;
 
+
 /***/ },
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
+/**
+ * source viewer at the mainarea
+ */
 const $dom = document.getElementById('pane-main');
 const Command = __webpack_require__(0);
 const Breakpoint = __webpack_require__(1);
+const Narration = __webpack_require__(9);
 const codeMirror = CodeMirror($dom, {
     value: '// select file from left pane',
     mode:  "javascript",
@@ -225,11 +251,13 @@ const SourceViewer = {
             return Breakpoint.add(this.fileUrl, lineNumber)
                 .then((result) => {
                     this.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
+                    Narration.show(result);
                 });
         } else {
             return Breakpoint.remove(`${this.fileUrl}:${lineNumber}:0`)
                 .then((result) => {
                     this.toggleBreakpointClassAtLine(lineNumber, false);
+                    Narration.hide();
                 });
         }
     },
@@ -254,9 +282,9 @@ const SourceViewer = {
      * show line
      */
     showLine(lineNumber){
-        let t = codeMirror.charCoords({line: lineNumber, ch: 0}, "local").top; 
-        let middleHeight = codeMirror.getScrollerElement().offsetHeight / 2; 
-        codeMirror.scrollTo(null, t - middleHeight - 5); 
+        let t = codeMirror.charCoords({line: lineNumber, ch: 0}, "local").top;
+        let middleHeight = codeMirror.getScrollerElement().offsetHeight / 2;
+        codeMirror.scrollTo(null, t - middleHeight - 5);
     },
 
     clearAllBreakpoints(){
@@ -284,18 +312,33 @@ codeMirror.on('gutterClick', (cm, line, gutter, e) => {
     }
 });
 
+// when hover breakpoint mark, show the comment
+$(document).on('mouseenter', '.CodeMirror-linenumber', function(e){
+    let breakpointId = SourceViewer.fileUrl + ':' + ($(this).text() * 1 - 1) + ':0';
+    let breakpoint = Breakpoint.search(breakpointId);
+    if (breakpoint){
+        Narration.show(breakpoint);
+    }
+});
+
+// when hover, try show narration
 module.exports = SourceViewer;
+
 
 /***/ },
 /* 3 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
+/**
+ * overlay of export
+ */
 const $overlayExport = $('#overlay-export');
 const $input = $overlayExport.find('textarea');
+const Breakpoint = __webpack_require__(1);
 
 const OverlayExport = {
-	show(text){
-		$input.val(text || '');
+	show(){
+		$input.val(Breakpoint.exportToStr() || '');
 		$overlayExport.show();
 		$input.select();
 	},
@@ -306,18 +349,17 @@ const OverlayExport = {
 }
 
 $overlayExport.on('click', '.cancel', ()=> OverlayExport.hide());
-$overlayExport.on('click', '.confirm', ()=> {
-	if ($input.val()){
-
-	}
-});
 
 module.exports = OverlayExport;
+
 
 /***/ },
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
+/**
+ * overlay of export
+ */
 const $overlayImport = $('#overlay-import');
 const $input = $overlayImport.find('textarea');
 const SourceViewer = __webpack_require__(2);
@@ -334,34 +376,45 @@ const OverlayImport = {
 	},
 
 	import(str){
-		let breakpointIds = [];
+		let breakpoints = [];
 		try {
 			let data = JSON.parse(str.trim());
-			for(let url in data.breakpoints){
-				data.breakpoints[url].forEach((line) => {
-					breakpointIds.push(url + ':' + line);
+			// version check
+			if (data.v * 1 > Breakpoint.VERSION){
+				alert('please update your extension to support this format');
+				return;
+			}
+
+			if (data.v * 1 == 1){
+				for(let url in data.breakpoints){
+					data.breakpoints[url].forEach((config) => {
+						let segs = config.split(',');
+						breakpoints.push({
+							url,
+							line: segs[0],
+							comment: segs[1]
+						});
+					});
+				}
+
+				SourceViewer.clearAllBreakpoints();
+
+				breakpoints.forEach((item) => {
+					let segs = item.line.split(':');
+					let lineNumber = segs[0] * 1;
+
+					Breakpoint.add(item.url, lineNumber, item.comment);
+
+					if (item.url === SourceViewer.fileUrl){
+						SourceViewer.toggleBreakpointClassAtLine(lineNumber, true);
+					}
 				});
+
+				this.hide();
 			}
 		} catch(e){
 			alert('format invalid');
-			return;
 		}
-
-		SourceViewer.clearAllBreakpoints();
-
-		breakpointIds.forEach((item) => {
-			let segs = item.split(':');
-			let url = segs.slice(0, 2).join(':');
-			let lineNumber = segs[2] * 1;
-
-			Breakpoint.add(url, lineNumber);
-
-			if (url === SourceViewer.fileUrl){
-				SourceViewer.toggleBreakpointClassAtLine(lineNumber, true);
-			}
-		});
-
-		this.hide();
 	}
 }
 
@@ -372,10 +425,14 @@ $overlayImport.on('click', '.confirm', ()=> {
 
 module.exports = OverlayImport;
 
+
 /***/ },
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
+/**
+ * resource viewer at the left sidebar
+ */
 const Command = __webpack_require__(0);
 const SourceViewer = __webpack_require__(2);
 const $dom = $('#resources');
@@ -410,17 +467,22 @@ $(document).on('click', '.resource-file', (e) => {
 
 module.exports = ResourceViewer;
 
+
 /***/ },
 /* 6 */,
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
+/**
+ * debugger main
+ */
 const Command = __webpack_require__(0);
 const SourceViewer = __webpack_require__(2);
 const ResourceViewer = __webpack_require__(5);
 const Breakpoint = __webpack_require__(1);
 const OverlayExport = __webpack_require__(3);
 const OverlayImport = __webpack_require__(4);
+const Narration = __webpack_require__(9);
 
 const $btnResume = $('#btn-resume');
 const $btnPause = $('#btn-pause');
@@ -433,16 +495,25 @@ const $consoleLogs = $('#console-logs');
 
 
 let pausedLineNumber = null;
-const onPaused = (lineNumber) => {
+const onPaused = (breakpointId) => {
+    let lineNumber = breakpointId.split(':')[2] * 1;
+    SourceViewer.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
+    SourceViewer.toggleFocusClassAtLine(lineNumber, /*isAdd*/true);
+    SourceViewer.showLine(lineNumber);
     $btnResume.prop('disabled', false);
     $btnPause.prop('disabled', true);
+
+    let realBreakpoint = Breakpoint.search(breakpointId);
+    Narration.show(realBreakpoint);
     pausedLineNumber = lineNumber;
+
 };
 
 const onResume = () => {
     $btnResume.prop('disabled', true);
     $btnPause.prop('disabled', false);
     SourceViewer.toggleFocusClassAtLine(pausedLineNumber, /*isAdd*/false);
+    Narration.hide();
 };
 
 const resume = () => {
@@ -458,7 +529,7 @@ const pause = () => {
 };
 
 const exportBreakpoints = () => {
-    OverlayExport.show(Breakpoint.exportToStr());
+    OverlayExport.show();
 };
 
 const importBreakpoints = () => {
@@ -485,11 +556,7 @@ Command('Debugger.enable', {}).then(() => {
             // when script is stopped by breakpoints
             // scroll to it
             if (obj.hitBreakpoints){
-                let lineNumber = obj.hitBreakpoints[0].split(':')[2] * 1;
-                SourceViewer.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
-                SourceViewer.toggleFocusClassAtLine(lineNumber, /*isAdd*/true);
-                SourceViewer.showLine(lineNumber);
-                onPaused(lineNumber);
+                onPaused(obj.hitBreakpoints[0]);
             }
         } else if (method === 'Debugger.breakpointResolved'){
             // Breakpoint.collect(obj);
@@ -524,14 +591,6 @@ $consoleInput.on('keypress', (e) => {
          });
     }
 });
-// document.getElementById('btn-run').addEventListener('click', () => {
-//  let expression = document.getElementById('textarea-inject').value;
-//  Command('Runtime.evaluate', {
-//      expression
-//  }).then((result) => {
-//      log(result);
-//  });
-// }, false);
 
 $btnResume.on('click', resume);
 $btnPause.on('click', pause);
@@ -545,6 +604,47 @@ $btnReload.on('click', () => {
 chrome.debugger.onDetach.addListener(() => {
     window.close();
 });
+
+
+/***/ },
+/* 8 */,
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+const $narration = $('#narration');
+const Breakpoint = __webpack_require__(1);
+const Helper = __webpack_require__(10);
+let targetBreakpoint = null;
+
+exports.show = (breakpoint) => {
+    targetBreakpoint = breakpoint;
+    $narration.text(breakpoint.comment || '').show();
+}
+
+exports.hide = () => {
+    $narration.hide();
+    targetBreakpoint = null;
+}
+
+$narration.on('input', Helper.debounce(function(){
+    if (targetBreakpoint){
+        targetBreakpoint.comment = $narration.text();
+        Breakpoint.sync();
+    }
+}, 100));
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+exports.debounce = function(func, skip){
+    let timer = null;
+    return function(){
+        clearTimeout(timer);
+        timer = setTimeout(func, skip || 100);
+    };
+};
 
 
 /***/ }

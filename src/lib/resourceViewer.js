@@ -1,3 +1,6 @@
+/**
+ * resource viewer at the left sidebar
+ */
 const Command = require('./command');
 const SourceViewer = require('./sourceViewer');
 const $dom = $('#resources');

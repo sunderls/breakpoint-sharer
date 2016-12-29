@@ -61,7 +61,7 @@
 			align-items: center;
 			justify-content: center;
 			z-index: 10;
-			background-color: #00000077;
+			background-color: rgba(0,0,0,0.7);
 			text-align: center;
 		}
 
@@ -99,6 +99,12 @@
 			background-color: #e1f5fe;
 			padding: 10px;
 			line-height: 1.5;
+		}
+
+		#narration:empty:before {
+		 	content: attr(placeholder);
+		 	display: block;
+		 	color: #999;
 		}
 	</style>
 </head>
@@ -143,7 +149,7 @@
 					</div>
 				</header>
 			</div>
-			
+
 			<div class="overlay" id="overlay-import" style="display: none">
 				<h1 class="overlay-title">Paste breakpoints ↓ </h1>
 				<textarea></textarea>
@@ -160,9 +166,7 @@
 		</div>
 	</div>
 <footer class="">
-	<div id="narration">
-		The code here is to create watchers. Wathcer will be responsible for...<br>The code here is to create watchers. Wathcer will be responsible for...<br>The code here is to create watchers. Wathcer will be responsible for...<br>
-	</div>
+	<div id="narration" contenteditable=true placeholder="add some comment?" style="display:none;"></div>
 </footer>
 
 <footer class="toolbar toolbar-footer">

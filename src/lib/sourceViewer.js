@@ -1,6 +1,10 @@
+/**
+ * source viewer at the mainarea
+ */
 const $dom = document.getElementById('pane-main');
 const Command = require('./command');
 const Breakpoint = require('./breakpoint');
+const Narration = require('./narration');
 const codeMirror = CodeMirror($dom, {
     value: '// select file from left pane',
     mode:  "javascript",
@@ -28,11 +32,13 @@ const SourceViewer = {
             return Breakpoint.add(this.fileUrl, lineNumber)
                 .then((result) => {
                     this.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
+                    Narration.show(result);
                 });
         } else {
             return Breakpoint.remove(`${this.fileUrl}:${lineNumber}:0`)
                 .then((result) => {
                     this.toggleBreakpointClassAtLine(lineNumber, false);
+                    Narration.hide();
                 });
         }
     },
@@ -57,9 +63,9 @@ const SourceViewer = {
      * show line
      */
     showLine(lineNumber){
-        let t = codeMirror.charCoords({line: lineNumber, ch: 0}, "local").top; 
-        let middleHeight = codeMirror.getScrollerElement().offsetHeight / 2; 
-        codeMirror.scrollTo(null, t - middleHeight - 5); 
+        let t = codeMirror.charCoords({line: lineNumber, ch: 0}, "local").top;
+        let middleHeight = codeMirror.getScrollerElement().offsetHeight / 2;
+        codeMirror.scrollTo(null, t - middleHeight - 5);
     },
 
     clearAllBreakpoints(){
@@ -87,4 +93,14 @@ codeMirror.on('gutterClick', (cm, line, gutter, e) => {
     }
 });
 
+// when hover breakpoint mark, show the comment
+$(document).on('mouseenter', '.CodeMirror-linenumber', function(e){
+    let breakpointId = SourceViewer.fileUrl + ':' + ($(this).text() * 1 - 1) + ':0';
+    let breakpoint = Breakpoint.search(breakpointId);
+    if (breakpoint){
+        Narration.show(breakpoint);
+    }
+});
+
+// when hover, try show narration
 module.exports = SourceViewer;

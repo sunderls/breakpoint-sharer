@@ -1,3 +1,6 @@
+/**
+ * Command request helper
+ */
 let params = location.search.slice(1).split('&').reduce((pre, curr) => {
     let pair = curr.split('=');
     pre[pair[0]] = pair[1];
