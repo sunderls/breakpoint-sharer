@@ -63,44 +63,11 @@
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 7);
+/******/ 	return __webpack_require__(__webpack_require__.s = 9);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ function(module, exports) {
-
-/**
- * Command request helper
- */
-let params = location.search.slice(1).split('&').reduce((pre, curr) => {
-    let pair = curr.split('=');
-    pre[pair[0]] = pair[1];
-    return pre;
-}, {});
-
-let debuggee = {
-    tabId: params.tabId * 1
-};
-
-const Command = (command, params) => {
-    return new Promise((resolve, reject) => {
-        chrome.debugger.sendCommand(
-            debuggee, command, params, (result) => {
-                if (chrome.runtime.lastError){
-                    reject(chrome.runtime.lastError);
-                } else {
-                    resolve(result);
-                }
-            });
-    });
-}
-
-module.exports = Command;
-
-
-/***/ },
-/* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
 /**
@@ -108,7 +75,7 @@ module.exports = Command;
  */
 
 let allBreakpoints = [];
-const Command = __webpack_require__(0);
+const Command = __webpack_require__(1);
 const $btnExport = $('#btn-export');
 const $btnClear = $('#btn-clear');
 
@@ -214,6 +181,39 @@ module.exports = Breakpoint;
 
 
 /***/ },
+/* 1 */
+/***/ function(module, exports) {
+
+/**
+ * Command request helper
+ */
+let params = location.search.slice(1).split('&').reduce((pre, curr) => {
+    let pair = curr.split('=');
+    pre[pair[0]] = pair[1];
+    return pre;
+}, {});
+
+let debuggee = {
+    tabId: params.tabId * 1
+};
+
+const Command = (command, params) => {
+    return new Promise((resolve, reject) => {
+        chrome.debugger.sendCommand(
+            debuggee, command, params, (result) => {
+                if (chrome.runtime.lastError){
+                    reject(chrome.runtime.lastError);
+                } else {
+                    resolve(result);
+                }
+            });
+    });
+}
+
+module.exports = Command;
+
+
+/***/ },
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -221,9 +221,9 @@ module.exports = Breakpoint;
  * source viewer at the mainarea
  */
 const $dom = document.getElementById('pane-main');
-const Command = __webpack_require__(0);
-const Breakpoint = __webpack_require__(1);
-const Narration = __webpack_require__(9);
+const Command = __webpack_require__(1);
+const Breakpoint = __webpack_require__(0);
+const Narration = __webpack_require__(3);
 const codeMirror = CodeMirror($dom, {
     value: '// select file from left pane',
     mode:  "javascript",
@@ -329,12 +329,39 @@ module.exports = SourceViewer;
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
+const $narration = $('#narration');
+const Breakpoint = __webpack_require__(0);
+const Helper = __webpack_require__(7);
+let targetBreakpoint = null;
+
+exports.show = (breakpoint) => {
+    targetBreakpoint = breakpoint;
+    $narration.text(breakpoint.comment || '').show();
+}
+
+exports.hide = () => {
+    $narration.hide();
+    targetBreakpoint = null;
+}
+
+$narration.on('input', Helper.debounce(function(){
+    if (targetBreakpoint){
+        targetBreakpoint.comment = $narration.text();
+        Breakpoint.sync();
+    }
+}, 100));
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
 /**
  * overlay of export
  */
 const $overlayExport = $('#overlay-export');
 const $input = $overlayExport.find('textarea');
-const Breakpoint = __webpack_require__(1);
+const Breakpoint = __webpack_require__(0);
 
 const OverlayExport = {
 	show(){
@@ -354,7 +381,7 @@ module.exports = OverlayExport;
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 /**
@@ -363,7 +390,7 @@ module.exports = OverlayExport;
 const $overlayImport = $('#overlay-import');
 const $input = $overlayImport.find('textarea');
 const SourceViewer = __webpack_require__(2);
-const Breakpoint = __webpack_require__(1);
+const Breakpoint = __webpack_require__(0);
 
 const OverlayImport = {
 	show(){
@@ -427,13 +454,13 @@ module.exports = OverlayImport;
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 /**
  * resource viewer at the left sidebar
  */
-const Command = __webpack_require__(0);
+const Command = __webpack_require__(1);
 const SourceViewer = __webpack_require__(2);
 const $dom = $('#resources');
 
@@ -469,20 +496,33 @@ module.exports = ResourceViewer;
 
 
 /***/ },
-/* 6 */,
 /* 7 */
+/***/ function(module, exports) {
+
+exports.debounce = function(func, skip){
+    let timer = null;
+    return function(){
+        clearTimeout(timer);
+        timer = setTimeout(func, skip || 100);
+    };
+};
+
+
+/***/ },
+/* 8 */,
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 /**
  * debugger main
  */
-const Command = __webpack_require__(0);
+const Command = __webpack_require__(1);
 const SourceViewer = __webpack_require__(2);
-const ResourceViewer = __webpack_require__(5);
-const Breakpoint = __webpack_require__(1);
-const OverlayExport = __webpack_require__(3);
-const OverlayImport = __webpack_require__(4);
-const Narration = __webpack_require__(9);
+const ResourceViewer = __webpack_require__(6);
+const Breakpoint = __webpack_require__(0);
+const OverlayExport = __webpack_require__(4);
+const OverlayImport = __webpack_require__(5);
+const Narration = __webpack_require__(3);
 
 const $btnResume = $('#btn-resume');
 const $btnPause = $('#btn-pause');
@@ -493,23 +533,25 @@ const $btnClear = $('#btn-clear');
 const $consoleInput = $('#console-input');
 const $consoleLogs = $('#console-logs');
 
-
+let pausedObj = null;
 let pausedLineNumber = null;
-const onPaused = (breakpointId) => {
-    let lineNumber = breakpointId.split(':')[2] * 1;
+const onPaused = (obj) => {
+    pausedObj = obj;
+    let lineNumber = obj.hitBreakpoints[0].split(':')[2] * 1;
     SourceViewer.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
     SourceViewer.toggleFocusClassAtLine(lineNumber, /*isAdd*/true);
     SourceViewer.showLine(lineNumber);
     $btnResume.prop('disabled', false);
     $btnPause.prop('disabled', true);
 
-    let realBreakpoint = Breakpoint.search(breakpointId);
+    let realBreakpoint = Breakpoint.search(obj.hitBreakpoints[0]);
     Narration.show(realBreakpoint);
     pausedLineNumber = lineNumber;
 
 };
 
 const onResume = () => {
+    pausedObj = null;
     $btnResume.prop('disabled', true);
     $btnPause.prop('disabled', false);
     SourceViewer.toggleFocusClassAtLine(pausedLineNumber, /*isAdd*/false);
@@ -540,6 +582,12 @@ const clear = () => {
     SourceViewer.clearAllBreakpoints();
 }
 
+const log = (str) => {
+    $consoleLogs.append(`<div class="console-log result"> ⇨　${str}</div>`);
+    $consoleLogs.scrollTop($consoleLogs[0].scrollHeight);
+    $consoleInput.val('').focus();
+}
+
 // get resource tree
 Command('Page.enable', {}).then(() => {
     Command('Page.getResourceTree', {})
@@ -556,7 +604,7 @@ Command('Debugger.enable', {}).then(() => {
             // when script is stopped by breakpoints
             // scroll to it
             if (obj.hitBreakpoints){
-                onPaused(obj.hitBreakpoints[0]);
+                onPaused(obj);
             }
         } else if (method === 'Debugger.breakpointResolved'){
             // Breakpoint.collect(obj);
@@ -566,29 +614,45 @@ Command('Debugger.enable', {}).then(() => {
     });
 });
 
+
+
 $consoleInput.on('keypress', (e) => {
     if (e.which === 13){
-        let expression = $consoleInput.val()
-        Command('Runtime.evaluate', {
+        let expression = $consoleInput.val();
+
+        let cmd = 'Runtime.evaluate';
+        let data = {
             expression,
-            returnByValue: true
-         }).then((data) => {
+            returnByValue: false,
+            silent: true
+        }
+
+        if (pausedObj){
+            data.callFrameId = pausedObj.callFrames[0].callFrameId;
+            cmd = 'Debugger.evaluateOnCallFrame';
+        }
+
+        Command(cmd, data).then((data) => {
             $consoleLogs.append(`<div class="console-log">${expression}</div>`);
             let result = data.result;
             switch (result.type){
                 case 'object':
-                    result = JSON.stringify(result.value);
+                    Command('Runtime.getProperties', {
+                        objectId: result.objectId,
+                        ownProperties: true
+                    }).then((data) => {
+                        result = JSON.stringify(data);
+                        log(result);
+                    });
                     break;
                 case 'function':
                     result = '[function]'
                 default:
                     result = result.value;
+                    log(result);
                     break;
             }
-            $consoleLogs.append(`<div class="console-log result"> ⇨　${result}</div>`);
-            $consoleLogs.scrollTop($consoleLogs[0].scrollHeight);
-            $consoleInput.val('').focus();
-         });
+        });
     }
 });
 
@@ -604,47 +668,6 @@ $btnReload.on('click', () => {
 chrome.debugger.onDetach.addListener(() => {
     window.close();
 });
-
-
-/***/ },
-/* 8 */,
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-const $narration = $('#narration');
-const Breakpoint = __webpack_require__(1);
-const Helper = __webpack_require__(10);
-let targetBreakpoint = null;
-
-exports.show = (breakpoint) => {
-    targetBreakpoint = breakpoint;
-    $narration.text(breakpoint.comment || '').show();
-}
-
-exports.hide = () => {
-    $narration.hide();
-    targetBreakpoint = null;
-}
-
-$narration.on('input', Helper.debounce(function(){
-    if (targetBreakpoint){
-        targetBreakpoint.comment = $narration.text();
-        Breakpoint.sync();
-    }
-}, 100));
-
-
-/***/ },
-/* 10 */
-/***/ function(module, exports) {
-
-exports.debounce = function(func, skip){
-    let timer = null;
-    return function(){
-        clearTimeout(timer);
-        timer = setTimeout(func, skip || 100);
-    };
-};
 
 
 /***/ }

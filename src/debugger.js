@@ -18,23 +18,25 @@ const $btnClear = $('#btn-clear');
 const $consoleInput = $('#console-input');
 const $consoleLogs = $('#console-logs');
 
-
+let pausedObj = null;
 let pausedLineNumber = null;
-const onPaused = (breakpointId) => {
-    let lineNumber = breakpointId.split(':')[2] * 1;
+const onPaused = (obj) => {
+    pausedObj = obj;
+    let lineNumber = obj.hitBreakpoints[0].split(':')[2] * 1;
     SourceViewer.toggleBreakpointClassAtLine(lineNumber, /*isAdd*/true);
     SourceViewer.toggleFocusClassAtLine(lineNumber, /*isAdd*/true);
     SourceViewer.showLine(lineNumber);
     $btnResume.prop('disabled', false);
     $btnPause.prop('disabled', true);
 
-    let realBreakpoint = Breakpoint.search(breakpointId);
+    let realBreakpoint = Breakpoint.search(obj.hitBreakpoints[0]);
     Narration.show(realBreakpoint);
     pausedLineNumber = lineNumber;
 
 };
 
 const onResume = () => {
+    pausedObj = null;
     $btnResume.prop('disabled', true);
     $btnPause.prop('disabled', false);
     SourceViewer.toggleFocusClassAtLine(pausedLineNumber, /*isAdd*/false);
@@ -65,6 +67,12 @@ const clear = () => {
     SourceViewer.clearAllBreakpoints();
 }
 
+const log = (str) => {
+    $consoleLogs.append(`<div class="console-log result"> ⇨　${str}</div>`);
+    $consoleLogs.scrollTop($consoleLogs[0].scrollHeight);
+    $consoleInput.val('').focus();
+}
+
 // get resource tree
 Command('Page.enable', {}).then(() => {
     Command('Page.getResourceTree', {})
@@ -81,7 +89,7 @@ Command('Debugger.enable', {}).then(() => {
             // when script is stopped by breakpoints
             // scroll to it
             if (obj.hitBreakpoints){
-                onPaused(obj.hitBreakpoints[0]);
+                onPaused(obj);
             }
         } else if (method === 'Debugger.breakpointResolved'){
             // Breakpoint.collect(obj);
@@ -91,29 +99,45 @@ Command('Debugger.enable', {}).then(() => {
     });
 });
 
+
+
 $consoleInput.on('keypress', (e) => {
     if (e.which === 13){
-        let expression = $consoleInput.val()
-        Command('Runtime.evaluate', {
+        let expression = $consoleInput.val();
+
+        let cmd = 'Runtime.evaluate';
+        let data = {
             expression,
-            returnByValue: true
-         }).then((data) => {
+            returnByValue: false,
+            silent: true
+        }
+
+        if (pausedObj){
+            data.callFrameId = pausedObj.callFrames[0].callFrameId;
+            cmd = 'Debugger.evaluateOnCallFrame';
+        }
+
+        Command(cmd, data).then((data) => {
             $consoleLogs.append(`<div class="console-log">${expression}</div>`);
             let result = data.result;
             switch (result.type){
                 case 'object':
-                    result = JSON.stringify(result.value);
+                    Command('Runtime.getProperties', {
+                        objectId: result.objectId,
+                        ownProperties: true
+                    }).then((data) => {
+                        result = JSON.stringify(data);
+                        log(result);
+                    });
                     break;
                 case 'function':
                     result = '[function]'
                 default:
                     result = result.value;
+                    log(result);
                     break;
             }
-            $consoleLogs.append(`<div class="console-log result"> ⇨　${result}</div>`);
-            $consoleLogs.scrollTop($consoleLogs[0].scrollHeight);
-            $consoleInput.val('').focus();
-         });
+        });
     }
 });
 
